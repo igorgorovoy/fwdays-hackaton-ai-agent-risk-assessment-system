@@ -1,0 +1,89 @@
+/* Імпортуємо шрифти */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
+
+.container {
+    max-width: 100%;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Cormorant Garamond', serif;
+}
+
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Завжди 3 колонки */
+    gap: 20px;
+    flex: 1;
+    padding: 20px;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.card img {
+    width: 100%;
+    height: 70vh; /* Фіксована висота */
+    object-fit: contain; /* Зберігає пропорції */
+    transition: transform 0.3s ease;
+}
+
+.card-reversed {
+    transform: rotate(180deg);
+}
+
+.card p {
+    margin-top: 20px;
+    text-align: left;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3em;
+    line-height: 1.6;
+    padding: 0 20px;
+    color: #2c1810; /* Темно-коричневий колір тексту */
+    letter-spacing: 0.02em;
+    font-weight: 500;
+}
+
+.card h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8em;
+    margin-bottom: 15px;
+    color: #1a0f0a;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Прибираємо адаптивність - завжди 3 колонки */
+@media (max-width: 1200px) {
+    .card-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .card img {
+        height: 60vh;
+    }
+}
+
+@media (max-width: 768px) {
+    .card-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .card img {
+        height: 50vh;
+    }
+    
+    .card p {
+        font-size: 1.1em;
+    }
+    
+    .card h2 {
+        font-size: 1.5em;
+    }
+} 

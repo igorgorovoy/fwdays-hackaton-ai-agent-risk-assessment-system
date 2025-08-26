@@ -1,0 +1,13 @@
+Flask==3.0.0
+Pillow>=10.1.0
+langchain>=0.1.12
+langchain-core>=0.3.74
+langchain-openai>=0.3.31
+langchain-community>=0.0.38
+langchain-chroma>=0.0.5
+chromadb==0.4.24
+sentence-transformers==2.5.1
+python-dotenv==1.0.1
+openai>=1.99.9
+tiktoken>=0.7.0
+langsmith>=0.4.16
