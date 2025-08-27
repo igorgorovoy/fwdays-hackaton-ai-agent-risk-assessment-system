@@ -626,7 +626,7 @@ tarot/
 
 1. **Клонування репозиторію**
    ```bash
-   git clone [https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system](https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system)
+   git clone https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system
    cd fwdays-hackaton-ai-agent-risk-assessment-system
    ```
 
@@ -888,7 +888,7 @@ python check_documents.py
 
 ## Моніторинг та Спостережуваність (Observability)
 
-Система використовує LangSmith для комплексного моніторингу та аналізу продуктивності.
+Система використовує LangSmith, та Phoenix для комплексного моніторингу та аналізу продуктивності.
 
 ### Налаштування
 
