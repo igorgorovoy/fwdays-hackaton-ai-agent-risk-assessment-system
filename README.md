@@ -535,10 +535,49 @@ graph TD
 - **Validation**: Валідація вхідних даних
 
 #### Безпека
-- **API Keys**: Зберігання в змінних середовища
-- **Input Validation**: Перевірка користувацьких даних
-- **Error Disclosure**: Запобігання витоку системної інформації
-- **Rate Limiting**: Контроль частоти запитів
+
+1. **API Keys та конфіденційні дані**
+   ```python
+   # Використання python-dotenv для безпечного завантаження змінних
+   from dotenv import load_dotenv
+   load_dotenv()
+   
+   agent = TarotAgent(
+       cards_path=os.getenv('CARDS_DATA_PATH'),
+       vector_store_path=os.getenv('VECTOR_STORE_PATH')
+   )
+   ```
+
+2. **Валідація вхідних даних**
+   ```python
+   @app.route('/api/reading', methods=['POST'])
+   async def get_reading():
+       try:
+           data = request.get_json()
+           if not data or 'question' not in data:
+               return jsonify({'error': 'Question is required'}), 400
+   ```
+
+3. **Безпечна обробка помилок**
+   ```python
+   try:
+       result = await agent.get_reading(question=data['question'])
+   except Exception as e:
+       # Логуємо деталі для діагностики
+       app.logger.error(f"Error: {str(e)}\n{traceback.format_exc()}")
+       # Повертаємо безпечне повідомлення користувачу
+       return jsonify({'error': str(e)}), 500
+   ```
+
+4. **Захист витоку з телеметрії**
+   ```python
+   # Відключення збору даних в ChromaDB
+   os.environ["ANONYMIZED_TELEMETRY"] = "False"
+   os.environ["CHROMA_SERVER_NOFILE"] = "1"
+   
+   # Блокування телеметрії на рівні логування
+   logging.getLogger("chromadb.telemetry").setLevel(logging.CRITICAL)
+   ```
 
 ### Компоненти системи
 
@@ -858,6 +897,7 @@ python check_documents.py
 LANGCHAIN_API_KEY=your_api_key
 LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
 LANGCHAIN_PROJECT=tarot-agent
+LANGCHAIN_TRACING_V2=true
 ```
 
 ### Основні метрики
