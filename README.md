@@ -49,58 +49,95 @@ classDiagram
     TarotAgent --> OpenAI: uses
     TarotVectorStore --> ChromaDB: uses
     TarotAgent --> TarotDataLoader: uses
+
+    %% Стилі для кращої читабельності на GitHub
+    classDef webapp fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef core fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef storage fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef external fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+
+    class FlaskApp webapp
+    class TarotAgent,TarotDataLoader core
+    class TarotVectorStore,ChromaDB storage
+    class OpenAI external
 ```
 
 ### Діаграма послідовності
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant Flask as Flask App
-    participant Agent as Tarot Agent
-    participant RAG as RAG System
-    participant LLM as GPT-4
-    participant DB as Vector DB
+    participant User as 👤 User
+    participant Flask as 🌐 Flask App
+    participant Agent as 🎴 Tarot Agent
+    participant RAG as 🔍 RAG System
+    participant LLM as 🤖 GPT-4
+    participant DB as 📊 Vector DB
+
+    Note over User,DB: Процес генерації Таро читання
 
     User->>Flask: Задає питання
+    activate Flask
     Flask->>Agent: Передає питання
+    activate Agent
+    
     Agent->>Agent: Витягує випадкові карти
     Agent->>DB: Шукає інформацію про карти
+    activate DB
     DB-->>Agent: Повертає описи карт
+    deactivate DB
+    
     Agent->>RAG: Формує контекст з описів
+    activate RAG
     RAG->>LLM: Запит з контекстом
+    activate LLM
     LLM-->>RAG: Генерує відповідь
+    deactivate LLM
     RAG-->>Agent: Повертає інтерпретацію
+    deactivate RAG
+    
     Agent-->>Flask: Повертає карти та читання
+    deactivate Agent
     Flask-->>User: Показує результат
+    deactivate Flask
 ```
 
 ### Діаграма процесів
 
 ```mermaid
 flowchart TD
-    A[Початок] --> B[Ініціалізація Flask]
-    B --> C[Завантаження конфігурації]
-    C --> D[Ініціалізація TarotAgent]
+    A[🚀 Початок] --> B[🌐 Ініціалізація Flask]
+    B --> C[⚙️ Завантаження конфігурації]
+    C --> D[🎴 Ініціалізація TarotAgent]
     
-    D --> E[Завантаження LLM]
-    D --> F[Ініціалізація Vector Store]
+    D --> E[🤖 Завантаження LLM]
+    D --> F[📊 Ініціалізація Vector Store]
     
-    F --> G[Завантаження документів]
-    G --> H[Створення ембедінгів]
-    H --> I[Збереження в ChromaDB]
+    F --> G[📄 Завантаження документів]
+    G --> H[🔢 Створення ембедінгів]
+    H --> I[💾 Збереження в ChromaDB]
     
-    E & I --> J[Створення ланцюжків]
-    J --> K[Готовий до роботи]
+    E & I --> J[⛓️ Створення ланцюжків]
+    J --> K[✅ Готовий до роботи]
     
-    K --> L{Отримання запиту}
-    L --> M[Вибір карт]
-    M --> N[Пошук описів]
-    N --> O[Формування контексту]
-    O --> P[Генерація відповіді]
-    P --> Q[Форматування результату]
-    Q --> R[Відправка відповіді]
+    K --> L{❓ Отримання запиту}
+    L --> M[🎯 Вибір карт]
+    M --> N[🔍 Пошук описів]
+    N --> O[📝 Формування контексту]
+    O --> P[✨ Генерація відповіді]
+    P --> Q[📦 Форматування результату]
+    Q --> R[📤 Відправка відповіді]
     R --> L
+
+    %% Стилі для кращої читабельності
+    classDef startend fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef process fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef decision fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef storage fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+
+    class A,K startend
+    class B,C,D,E,G,H,M,N,O,P,Q,R process
+    class L decision
+    class F,I,J storage
 ```
 
 ## High Level Design (HLD)
@@ -179,20 +216,21 @@ graph TB
     API --> UI
     UI --> User
 
-    %% Styling
-    classDef frontend fill:#e1f5fe
-    classDef application fill:#f3e5f5
-    classDef ai fill:#fff3e0
-    classDef data fill:#e8f5e8
-    classDef monitoring fill:#fce4ec
-    classDef external fill:#f5f5f5
-
+    %% Стилі для кращої читабельності на GitHub
+    classDef frontend fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef application fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef ai fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef data fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef monitoring fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    classDef external fill:#f5f5f5,stroke:#424242,stroke-width:2px,color:#000
+    classDef user fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#000
     class UI,API frontend
     class Flask,Routes,Agent application
     class LLM,RAG,Embeddings ai
     class VectorStore,CardData,Images data
     class Monitor,Logs monitoring
     class OpenAI external
+    class User user
 ```
 
 ### Детальна системна архітектура
@@ -293,13 +331,13 @@ graph TB
     WebServer --> VenvPython
     VenvPython --> Requirements
     
-    %% Styling
-    classDef client fill:#e3f2fd
-    classDef presentation fill:#f3e5f5
-    classDef business fill:#fff3e0
-    classDef ai fill:#e8f5e8
-    classDef data fill:#fce4ec
-    classDef config fill:#f5f5f5
+    %% Стилі для кращої читабельності на GitHub
+    classDef client fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef presentation fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef business fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef ai fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef data fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    classDef config fill:#f5f5f5,stroke:#424242,stroke-width:2px,color:#000
 
     class Browser,Mobile client
     class WebServer,StaticAssets,Templates presentation
@@ -327,8 +365,10 @@ sequenceDiagram
 
     User->>Browser: Вводить питання
     Browser->>Flask: POST /api/reading<br/>{"question": "питання"}
+    activate Flask
     
     Flask->>Agent: get_reading(question)
+    activate Agent
     Agent->>Monitor: Логування початку запиту
     
     Note over Agent,Selector: Вибір карт
@@ -354,7 +394,9 @@ sequenceDiagram
     Agent->>Agent: Формування відповіді<br/>+ шляхи до зображень
     
     Agent-->>Flask: {"cards": [...], "reading": "..."}
+    deactivate Agent
     Flask-->>Browser: JSON відповідь
+    deactivate Flask
     Browser-->>User: Відображення карт<br/>та інтерпретації
     
     Note over User,Monitor: Завершення запиту
@@ -448,14 +490,14 @@ graph TD
     FlaskApp --> Dependencies
     TarotAgent --> Dependencies
 
-    %% Styling
-    classDef webapp fill:#e1f5fe,stroke:#01579b
-    classDef aicore fill:#f3e5f5,stroke:#4a148c
-    classDef mlpipeline fill:#fff3e0,stroke:#e65100
-    classDef datastorage fill:#e8f5e8,stroke:#1b5e20
-    classDef infrastructure fill:#fce4ec,stroke:#880e4f
-    classDef external fill:#f5f5f5,stroke:#424242
-    classDef devtools fill:#fff8e1,stroke:#f57f17
+    %% Стилі для кращої читабельності на GitHub
+    classDef webapp fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef aicore fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef mlpipeline fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef datastorage fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef infrastructure fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    classDef external fill:#f5f5f5,stroke:#424242,stroke-width:2px,color:#000
+    classDef devtools fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#000
 
     class FlaskApp,WebUI webapp
     class TarotAgent,DataLoader,VectorStore aicore
