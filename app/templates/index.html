@@ -172,6 +172,20 @@
             container.style.display = 'block';
         }
 
+        function parseMarkdown(text) {
+            // Базовий парсер маркдауну для читання Таро
+            return text
+                // Заголовки ### -> <h3>
+                .replace(/### (.*?)(?=\n|$)/g, '<h3 style="color: #2c3e50; margin-top: 20px; margin-bottom: 10px;">$1</h3>')
+                // Жирний текст **text** -> <strong>
+                .replace(/\*\*(.*?)\*\*/g, '<strong style="color: #2c3e50;">$1</strong>')
+                // Курсив *text* -> <em>
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                // Розриви рядків \n -> <br>
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/\n/g, '<br>');
+        }
+
         function getReading() {
             const question = document.getElementById('question').value;
             if (!question) {
@@ -180,7 +194,7 @@
             }
 
             const resultDiv = document.getElementById('reading-result');
-            resultDiv.innerHTML = 'Тасуємо карти та отримуємо читання...';
+            resultDiv.innerHTML = 'Отримуємо прогноз...';
 
             fetch('/api/reading', {
                 method: 'POST',
@@ -198,8 +212,8 @@
                 } else {
                     // Показуємо витягнуті карти
                     showCards(data.cards);
-                    // Показуємо читання
-                    resultDiv.innerHTML = data.reading.replace(/\n/g, '<br>');
+                    // Показуємо читання з підтримкою маркдауну
+                    resultDiv.innerHTML = parseMarkdown(data.reading);
                 }
             })
             .catch(error => {
