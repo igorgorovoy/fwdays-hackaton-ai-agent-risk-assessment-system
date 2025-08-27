@@ -57,8 +57,10 @@ classDiagram
     classDef external fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
 
     class FlaskApp webapp
-    class TarotAgent,TarotDataLoader core
-    class TarotVectorStore,ChromaDB storage
+    class TarotAgent core
+    class TarotDataLoader core
+    class TarotVectorStore storage
+    class ChromaDB storage
     class OpenAI external
 ```
 
