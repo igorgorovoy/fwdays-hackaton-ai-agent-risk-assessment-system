@@ -2,6 +2,8 @@
 
 Tarot AI Agent - це Flask-додаток, який використовує LangChain та RAG (Retrieval Augmented Generation) для генерації інтерпретацій карт Таро на основі структурованих описів, в контексті заданого питання.
 
+![Demo](app/static/images/banner.png)  
+
 ## Архітектура
 
 ### Діаграма класів
