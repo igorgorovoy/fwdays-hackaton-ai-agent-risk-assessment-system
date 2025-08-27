@@ -12,6 +12,7 @@ from langchain.chains import create_retrieval_chain
 
 from .data_loader import TarotDataLoader
 from .vector_store import TarotVectorStore
+from .observability import TarotObservability
 
 # Налаштування логування
 logging.basicConfig(
@@ -34,6 +35,9 @@ class TarotAgent:
         self.vector_store = None
         self.retrieval_chain = None
         
+        # Initialize observability
+        self.observability = TarotObservability()
+        
         # Initialize LLM
         logger.info("Ініціалізація LLM (GPT-4)...")
         try:
@@ -52,40 +56,19 @@ class TarotAgent:
             raise
 
     def _create_chains(self):
-        """Create LangChain chains for processing"""
-        # Create the prompt for processing retrieved documents
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """Ти - досвідчений таролог, який допомагає людям зрозуміти значення карт Таро.
-            Твоя роль - надавати глибокі та змістовні інтерпретації карт, базуючись на їх традиційних значеннях.
-            
-            Важливі правила:
-            1. Використовуй надану інформацію про карти
-            2. Говори впевнено та професійно
-            3. Пояснюй значення зрозуміло та доступно
-            4. Зв'язуй значення карт з контекстом питання
-            5. Відповідай українською мовою
-            """),
-            ("human", "Питання користувача: {input}\n\nКонтекст:\n{context}"),
-            ("assistant", """Я проаналізую це питання та надану інформацію про карти.
-
-Ось моя інтерпретація:""")
+        """Create simple LLM chain for processing"""
+        # Простий промпт без складних ланцюжків
+        self.prompt_template = ChatPromptTemplate.from_messages([
+            ("system", """Ти таролог. Інтерпретуй карти базуючись на наданій інформації. 
+            Відповідай українською, зрозуміло та професійно."""),
+            ("human", "Питання: {input}\n\nКарти:\n{context}")
         ])
-
-        # Create the document chain
-        document_chain = create_stuff_documents_chain(
-            llm=self.llm,
-            prompt=prompt,
-            document_variable_name="context",
-        )
-
-        # Create the retrieval chain
-        self.retrieval_chain = create_retrieval_chain(
-            retriever=self.vector_store.db.as_retriever(
-                search_type="similarity",
-                search_kwargs={"k": 5}  # повертаємо 5 найбільш релевантних документів
-            ),
-            combine_docs_chain=document_chain
-        )
+        
+        # Простий ланцюжок: промпт + LLM
+        self.simple_chain = self.prompt_template | self.llm
+        
+        # Залишаємо retrieval_chain для сумісності, але не використовуємо
+        self.retrieval_chain = None
 
     def initialize_vector_store(self) -> None:
         """Initialize or update vector store with card data"""
@@ -125,13 +108,20 @@ class TarotAgent:
                 directory = f"MinorArcana_{suit}"
                 
                 # Для молодших арканів
-                value_map = {
-                    'Ace': '0', 'Two': '1', 'Three': '2', 'Four': '3', 'Five': '4',
-                    'Six': '5', 'Seven': '6', 'Eight': '7', 'Nine': '8', 'Ten': '9',
-                    'Page': '10', 'Knight': '11', 'Queen': '12', 'King': '13'
-                }
+                # Номери файлів відповідають порядку карт: Ace=0, Two=1, ..., Ten=9, Page=10, ...
                 value = card_name.split(' ')[0]
-                card_number = value_map.get(value, '0')
+                if value == 'Ace':
+                    card_number = '0'
+                elif value in ['Page', 'Knight', 'Queen', 'King']:
+                    court_map = {'Page': '10', 'Knight': '11', 'Queen': '12', 'King': '13'}
+                    card_number = court_map[value]
+                else:
+                    # Для числових карт (Two through Ten)
+                    number_map = {
+                        'Two': '1', 'Three': '2', 'Four': '3', 'Five': '4',
+                        'Six': '5', 'Seven': '6', 'Eight': '7', 'Nine': '8', 'Ten': '9'
+                    }
+                    card_number = number_map.get(value, '0')
                 
             else:
                 directory = "MajorArcana"
@@ -150,33 +140,35 @@ class TarotAgent:
             
             logger.info(f"Card mapping: {card_name} -> {directory}/{card_number}")
             
-            # Формуємо шлях до файлу
+            # Формуємо базовий шлях
             base_path = f"/static/images/cards/{directory}/{card_number}"
             
-            # Перевіряємо наявність файлу для перевернутої карти
-            import os
-            full_path = os.path.join(os.path.dirname(__file__), '..', 'static', 'images', 'cards', directory, f"{card_number}-r.jpg")
+            # Формуємо повні шляхи для перевірки існування файлів
+            base_dir = os.path.join(os.path.dirname(__file__), '..', 'static', 'images', 'cards', directory)
+            regular_file = os.path.join(base_dir, f"{card_number}.jpg")
+            reversed_file = os.path.join(base_dir, f"{card_number}-r.jpg")
             
-            # Формуємо шляхи до файлів
+            # Перевіряємо наявність файлів
+            regular_exists = os.path.exists(regular_file)
+            reversed_exists = os.path.exists(reversed_file)
+            
+            logger.info(f"Card: {card_name}, Number: {card_number}, Directory: {directory}")
+            logger.info(f"Regular file exists: {regular_exists}, path: {regular_file}")
+            logger.info(f"Reversed file exists: {reversed_exists}, path: {reversed_file}")
+            
+            # Формуємо відносні шляхи для веб
             regular_path = f"{base_path}.jpg"
             reversed_path = f"{base_path}-r.jpg"
             
-            # Перевіряємо наявність файлів
-            regular_exists = os.path.exists(os.path.join(os.path.dirname(__file__), '..', 'static', 'images', 'cards', directory, f"{card_number}.jpg"))
-            reversed_exists = os.path.exists(os.path.join(os.path.dirname(__file__), '..', 'static', 'images', 'cards', directory, f"{card_number}-r.jpg"))
-            
-            logger.info(f"Regular file exists: {regular_exists}, path: {regular_path}")
-            logger.info(f"Reversed file exists: {reversed_exists}, path: {reversed_path}")
-            
             # Вибираємо правильний шлях
-            if is_reversed:
-                if reversed_exists:
-                    image_path = reversed_path
-                else:
-                    logger.warning(f"Reversed image not found: {reversed_path}, using regular image")
-                    image_path = regular_path
+            if is_reversed and reversed_exists:
+                image_path = reversed_path
+                logger.info(f"Using reversed image: {image_path}")
             else:
+                if is_reversed:
+                    logger.warning(f"Reversed image not found: {reversed_path}, using regular image")
                 image_path = regular_path
+                logger.info(f"Using regular image: {image_path}")
             
             logger.info(f"Image path: {image_path}")
             return image_path
@@ -252,6 +244,18 @@ class TarotAgent:
             drawn_cards = self._draw_cards(num_cards)
             logger.info(f"Drawn cards: {drawn_cards}")
             
+            # Create trace
+            session_start_time = self.observability.start_timer()
+            trace_id = self.observability.create_trace(
+                question=question,
+                cards=drawn_cards,
+                metadata={"num_cards": num_cards}
+            )
+            
+            # Якщо не вдалося створити trace, продовжуємо без логування
+            if trace_id is None:
+                logger.warning("Failed to create trace, continuing without observability")
+            
             # Збираємо контекст про карти
             cards_context = []
             final_cards = []
@@ -308,20 +312,154 @@ class TarotAgent:
             logger.debug(f"Full formatted question: {formatted_question}")
             
             # Перевіряємо чи ініціалізовано retrieval chain
-            if not self.retrieval_chain:
-                logger.error("Retrieval chain is not initialized!")
-                raise ValueError("Retrieval chain is not initialized")
+            if not self.simple_chain:
+                logger.error("Simple chain is not initialized!")
+                raise ValueError("Simple chain is not initialized")
             
             # Get the response from the chain
             logger.info("Sending request to LLM...")
             try:
-                response = await self.retrieval_chain.ainvoke({
-                    "input": formatted_question  # змінено з "question" на "input"
+                # Start timing for entire process
+                total_start = self.observability.start_timer()
+                
+                # Start timing for retrieval
+                retrieval_start = self.observability.start_timer()
+                
+                # Отримуємо документи через retriever
+                retriever = self.vector_store.db.as_retriever(
+                    search_type="similarity",
+                    search_kwargs={"k": 3}  # Зменшуємо з 5 до 3 документів
+                )
+                retrieved_docs = await retriever.ainvoke(formatted_question)
+                retrieval_time = self.observability.end_timer(retrieval_start)
+                
+                logger.info(f"Retrieved {len(retrieved_docs)} documents in {retrieval_time:.3f}s")
+                
+                # Start timing for LLM call
+                llm_start = self.observability.start_timer()
+                
+                # Створюємо оптимізований контекст з отриманих документів
+                context_parts = []
+                for doc in retrieved_docs:
+                    # Обрізаємо кожен документ до 150 символів для економії токенів
+                    short_content = doc.page_content[:150] + "..." if len(doc.page_content) > 150 else doc.page_content
+                    context_parts.append(short_content)
+                
+                context = "\n\n".join(context_parts)
+                
+                logger.info(f"📄 Context length: {len(context)} chars (~{len(context.split())} words)")
+                
+                # Викликаємо простий ланцюжок
+                response_obj = await self.simple_chain.ainvoke({
+                    "input": formatted_question,
+                    "context": context
                 })
-                logger.info("Received response from LLM")
-                logger.debug(f"Raw response: {response}")
+                
+                response_text = response_obj.content
+                llm_execution_time = self.observability.end_timer(llm_start)
+                total_time = self.observability.end_timer(total_start)
+                
+                logger.info(f"LLM responded in {llm_execution_time:.3f}s (total: {total_time:.3f}s)")
+                
+                # Оцінюємо використання токенів (приблизно) 
+                question_tokens = len(formatted_question.split()) * 1.3
+                context_tokens = len(context.split()) * 1.3
+                system_prompt_tokens = 20  # Приблизно для скороченого промпта
+                
+                prompt_tokens = question_tokens + context_tokens + system_prompt_tokens
+                completion_tokens = len(response_text.split()) * 1.3
+                total_tokens = prompt_tokens + completion_tokens
+                
+                logger.info(f"🔢 Token breakdown:")
+                logger.info(f"   📝 Question: ~{int(question_tokens)} tokens")
+                logger.info(f"   📄 Context: ~{int(context_tokens)} tokens") 
+                logger.info(f"   ⚙️ System: ~{int(system_prompt_tokens)} tokens")
+                logger.info(f"   📤 Prompt total: ~{int(prompt_tokens)} tokens")
+                logger.info(f"   📥 Completion: ~{int(completion_tokens)} tokens")
+                
+                token_usage = {
+                    "prompt_tokens": int(prompt_tokens),
+                    "completion_tokens": int(completion_tokens),
+                    "total_tokens": int(total_tokens)
+                }
+                
+                # Обчислюємо вартість
+                estimated_cost = self.observability.calculate_cost(token_usage, "gpt-4-turbo-preview")
+                
+                logger.info(f"💰 Estimated cost: ${estimated_cost:.4f} (tokens: {int(total_tokens)})")
+                logger.info(f"⏱️ Timing: retrieval={retrieval_time:.3f}s, llm={llm_execution_time:.3f}s, total={total_time:.3f}s")
+                
+                # Створюємо детальні метрики
+                detailed_metrics = {
+                    # ⏱️ Метрики продуктивності  
+                    "retrieval_time_seconds": round(retrieval_time, 3),
+                    "llm_execution_time_seconds": round(llm_execution_time, 3), 
+                    "total_execution_time_seconds": round(total_time, 3),
+                    "retrieval_time_ms": round(retrieval_time * 1000),
+                    "llm_execution_time_ms": round(llm_execution_time * 1000),
+                    "total_execution_time_ms": round(total_time * 1000),
+                    
+                    # 💰 Економічні метрики - це найважливіше!
+                    "COST_USD": round(estimated_cost, 6),  # Робимо назву помітнішою
+                    "estimated_cost_usd": round(estimated_cost, 6),
+                    "cost_in_cents": round(estimated_cost * 100, 2),
+                    "prompt_tokens": int(token_usage["prompt_tokens"]),
+                    "completion_tokens": int(token_usage["completion_tokens"]), 
+                    "total_tokens": int(token_usage["total_tokens"]),
+                    "cost_per_1k_tokens": round(estimated_cost / (total_tokens / 1000), 6) if total_tokens > 0 else 0,
+                    
+                    # 🎴 Метрики контексту
+                    "documents_retrieved": len(retrieved_docs),
+                    "model_used": "gpt-4-turbo-preview",
+                    "num_cards_drawn": num_cards,
+                    "cards_drawn": [f"{card['name']} ({'R' if card['is_reversed'] else 'U'})" for card in drawn_cards],
+                    
+                    # 📊 Метрики якості
+                    "context_length_chars": len(context),
+                    "response_length_chars": len(response_text),
+                    "processing_success": True,
+                    "session_id": trace_id
+                }
+                
+                # Log основних метрик сесії безпосередньо до trace
+                if trace_id:
+                    try:
+                        # Спочатку оновлюємо outputs
+                        self.observability.client.update_run(
+                            run_id=trace_id,
+                            outputs={
+                                "response": response_text,
+                                "metrics_summary": f"Cost: ${estimated_cost:.4f}, Time: {total_time:.1f}s, Tokens: {int(total_tokens)}",
+                                "cards_info": [f"{card['name']} ({'перевернута' if card['is_reversed'] else 'пряма'})" 
+                                              for card in drawn_cards]
+                            }
+                        )
+                        
+                        # Потім додаємо всі метрики до extra
+                        self.observability.client.update_run(
+                            run_id=trace_id,
+                            extra=detailed_metrics
+                        )
+                        
+                        logger.info("✅ Metrics successfully logged to trace")
+                        logger.info(f"📊 Key metrics: Cost=${estimated_cost:.4f}, Time={total_time:.1f}s, Tokens={int(total_tokens)}")
+                        
+                    except Exception as e:
+                        logger.error(f"❌ Failed to update trace with metrics: {e}")
+                        # Якщо не вдалося оновити через API, виводимо метрики в логи
+                        logger.info("📊 МЕТРИКИ (fallback):")
+                        for key, value in detailed_metrics.items():
+                            logger.info(f"   {key}: {value}")
+                
+                response = {"answer": response_text}
             except Exception as chain_error:
                 logger.error(f"Error during chain invocation: {str(chain_error)}")
+                # Log error
+                self.observability.log_error(
+                    trace_id=trace_id,
+                    error=chain_error,
+                    context={"question": question, "cards": drawn_cards}
+                )
                 raise
             
             if not response:
@@ -333,6 +471,23 @@ class TarotAgent:
                 raise ValueError("No 'answer' in LLM response")
             
             logger.info("Successfully generated reading")
+            
+            # Фінальне логування метрик сесії
+            if trace_id:
+                try:
+                    session_duration = self.observability.end_timer(session_start_time)
+                    self.observability.client.update_run(
+                        run_id=trace_id,
+                        extra={
+                            **self.observability.client.read_run(trace_id).extra,
+                            "session_duration_seconds": session_duration,
+                            "session_success": True
+                        }
+                    )
+                    logger.info(f"Session completed successfully in {session_duration:.3f}s")
+                except Exception as finalize_error:
+                    logger.warning(f"Failed to finalize trace: {str(finalize_error)}")
+            
             return {
                 "cards": final_cards,
                 "reading": response["answer"]
@@ -340,6 +495,22 @@ class TarotAgent:
             
         except Exception as e:
             logger.error(f"Error in get_reading: {str(e)}", exc_info=True)
+            
+            # Логування невдалої сесії
+            if 'trace_id' in locals() and trace_id:
+                try:
+                    session_duration = self.observability.end_timer(session_start_time)
+                    self.observability.client.update_run(
+                        run_id=trace_id,
+                        extra={
+                            "session_duration_seconds": session_duration,
+                            "session_success": False,
+                            "error_message": str(e)
+                        }
+                    )
+                except Exception as finalize_error:
+                    logger.warning(f"Failed to finalize error trace: {str(finalize_error)}")
+            
             raise
 
     def get_card_info(self, card_name: str) -> Dict:
