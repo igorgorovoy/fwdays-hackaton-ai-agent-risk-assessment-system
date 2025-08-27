@@ -1,6 +1,10 @@
 import os
 import logging
 from dotenv import load_dotenv
+
+# Відключаємо телеметрію ChromaDB на самому початку
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
+
 from app import app
 
 # Configure logging

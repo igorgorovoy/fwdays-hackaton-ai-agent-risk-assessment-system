@@ -4,6 +4,17 @@ Script to initialize the vector database with tarot card data
 import os
 import logging
 from dotenv import load_dotenv
+
+# Відключаємо телеметрію ChromaDB на самому початку
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
+
+# Налаштовуємо ChromaDB перед імпортом інших модулів
+try:
+    from app.tarot_agent.chromadb_config import configure_chromadb_globally
+    configure_chromadb_globally()
+except ImportError:
+    pass
+
 from app.tarot_agent.agent import TarotAgent
 
 # Налаштування логування
