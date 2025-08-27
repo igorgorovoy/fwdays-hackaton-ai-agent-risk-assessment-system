@@ -1,6 +1,6 @@
-# Tarot AI Agent
+# Система оцінки ризиків (Tarot AI Agent)
 
-Tarot AI Agent - це Flask-додаток, який використовує LangChain та RAG (Retrieval Augmented Generation) для генерації інтерпретацій карт Таро на основі структурованих описів.
+Tarot AI Agent - це Flask-додаток, який використовує LangChain та RAG (Retrieval Augmented Generation) для генерації інтерпретацій карт Таро на основі структурованих описів, в контексті заданого питання.
 
 ## Архітектура
 
@@ -585,8 +585,8 @@ tarot/
 
 1. **Клонування репозиторію**
    ```bash
-   git clone https://github.com/your-username/tarot.git
-   cd tarot
+   git clone [https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system](https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system)
+   cd fwdays-hackaton-ai-agent-risk-assessment-system
    ```
 
 2. **Створення віртуального середовища**
