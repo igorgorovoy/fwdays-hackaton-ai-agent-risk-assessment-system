@@ -36,24 +36,28 @@ graph TD
         C4 --> S4
     end
 
-    style G1 fill:#e3f2fd,stroke:#1976d2
-    style G2 fill:#e3f2fd,stroke:#1976d2
-    style G3 fill:#e3f2fd,stroke:#1976d2
+    %% Цілі - синій
+    style G1 fill:#bbdefb,stroke:#1976d2,stroke-width:3px,color:#000000
+    style G2 fill:#bbdefb,stroke:#1976d2,stroke-width:3px,color:#000000
+    style G3 fill:#bbdefb,stroke:#1976d2,stroke-width:3px,color:#000000
 
-    style T1 fill:#e8f5e9,stroke:#2e7d32
-    style T2 fill:#e8f5e9,stroke:#2e7d32
-    style T3 fill:#e8f5e9,stroke:#2e7d32
-    style T4 fill:#e8f5e9,stroke:#2e7d32
+    %% Задачі - зелений
+    style T1 fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px,color:#000000
+    style T2 fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px,color:#000000
+    style T3 fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px,color:#000000
+    style T4 fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px,color:#000000
 
-    style C1 fill:#ffebee,stroke:#c62828
-    style C2 fill:#ffebee,stroke:#c62828
-    style C3 fill:#ffebee,stroke:#c62828
-    style C4 fill:#ffebee,stroke:#c62828
+    %% Виклики - червоний
+    style C1 fill:#ffcdd2,stroke:#c62828,stroke-width:3px,color:#000000
+    style C2 fill:#ffcdd2,stroke:#c62828,stroke-width:3px,color:#000000
+    style C3 fill:#ffcdd2,stroke:#c62828,stroke-width:3px,color:#000000
+    style C4 fill:#ffcdd2,stroke:#c62828,stroke-width:3px,color:#000000
 
-    style S1 fill:#fff3e0,stroke:#f57c00
-    style S2 fill:#fff3e0,stroke:#f57c00
-    style S3 fill:#fff3e0,stroke:#f57c00
-    style S4 fill:#fff3e0,stroke:#f57c00
+    %% Рішення - оранжевий
+    style S1 fill:#ffe0b2,stroke:#ef6c00,stroke-width:3px,color:#000000
+    style S2 fill:#ffe0b2,stroke:#ef6c00,stroke-width:3px,color:#000000
+    style S3 fill:#ffe0b2,stroke:#ef6c00,stroke-width:3px,color:#000000
+    style S4 fill:#ffe0b2,stroke:#ef6c00,stroke-width:3px,color:#000000
 ```
 
 ### Основні цілі
