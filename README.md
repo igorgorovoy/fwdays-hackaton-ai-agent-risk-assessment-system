@@ -1,6 +1,6 @@
-# Tarot AI Agent
+# Система оцінки ризиків (Tarot AI Agent)
 
-Tarot AI Agent - це Flask-додаток, який використовує LangChain та RAG (Retrieval Augmented Generation) для генерації інтерпретацій карт Таро на основі структурованих описів.
+Tarot AI Agent - це Flask-додаток, який використовує LangChain та RAG (Retrieval Augmented Generation) для генерації інтерпретацій карт Таро на основі структурованих описів, в контексті заданого питання.
 
 ## Архітектура
 
@@ -49,59 +49,494 @@ classDiagram
     TarotAgent --> OpenAI: uses
     TarotVectorStore --> ChromaDB: uses
     TarotAgent --> TarotDataLoader: uses
+
+    %% Стилі для кращої читабельності на GitHub
+    classDef webapp fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef core fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef storage fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef external fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+
+    class FlaskApp webapp
+    class TarotAgent core
+    class TarotDataLoader core
+    class TarotVectorStore storage
+    class ChromaDB storage
+    class OpenAI external
 ```
 
 ### Діаграма послідовності
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant Flask as Flask App
-    participant Agent as Tarot Agent
-    participant RAG as RAG System
-    participant LLM as GPT-4
-    participant DB as Vector DB
+    participant User as 👤 User
+    participant Flask as 🌐 Flask App
+    participant Agent as 🎴 Tarot Agent
+    participant RAG as 🔍 RAG System
+    participant LLM as 🤖 GPT-4
+    participant DB as 📊 Vector DB
+
+    Note over User,DB: Процес генерації Таро читання
 
     User->>Flask: Задає питання
+    activate Flask
     Flask->>Agent: Передає питання
+    activate Agent
+    
     Agent->>Agent: Витягує випадкові карти
     Agent->>DB: Шукає інформацію про карти
+    activate DB
     DB-->>Agent: Повертає описи карт
+    deactivate DB
+    
     Agent->>RAG: Формує контекст з описів
+    activate RAG
     RAG->>LLM: Запит з контекстом
+    activate LLM
     LLM-->>RAG: Генерує відповідь
+    deactivate LLM
     RAG-->>Agent: Повертає інтерпретацію
+    deactivate RAG
+    
     Agent-->>Flask: Повертає карти та читання
+    deactivate Agent
     Flask-->>User: Показує результат
+    deactivate Flask
 ```
 
 ### Діаграма процесів
 
 ```mermaid
 flowchart TD
-    A[Початок] --> B[Ініціалізація Flask]
-    B --> C[Завантаження конфігурації]
-    C --> D[Ініціалізація TarotAgent]
+    A[🚀 Початок] --> B[🌐 Ініціалізація Flask]
+    B --> C[⚙️ Завантаження конфігурації]
+    C --> D[🎴 Ініціалізація TarotAgent]
     
-    D --> E[Завантаження LLM]
-    D --> F[Ініціалізація Vector Store]
+    D --> E[🤖 Завантаження LLM]
+    D --> F[📊 Ініціалізація Vector Store]
     
-    F --> G[Завантаження документів]
-    G --> H[Створення ембедінгів]
-    H --> I[Збереження в ChromaDB]
+    F --> G[📄 Завантаження документів]
+    G --> H[🔢 Створення ембедінгів]
+    H --> I[💾 Збереження в ChromaDB]
     
-    E & I --> J[Створення ланцюжків]
-    J --> K[Готовий до роботи]
+    E & I --> J[⛓️ Створення ланцюжків]
+    J --> K[✅ Готовий до роботи]
     
-    K --> L{Отримання запиту}
-    L --> M[Вибір карт]
-    M --> N[Пошук описів]
-    N --> O[Формування контексту]
-    O --> P[Генерація відповіді]
-    P --> Q[Форматування результату]
-    Q --> R[Відправка відповіді]
+    K --> L{❓ Отримання запиту}
+    L --> M[🎯 Вибір карт]
+    M --> N[🔍 Пошук описів]
+    N --> O[📝 Формування контексту]
+    O --> P[✨ Генерація відповіді]
+    P --> Q[📦 Форматування результату]
+    Q --> R[📤 Відправка відповіді]
     R --> L
+
+    %% Стилі для кращої читабельності
+    classDef startend fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef process fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef decision fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef storage fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+
+    class A,K startend
+    class B,C,D,E,G,H,M,N,O,P,Q,R process
+    class L decision
+    class F,I,J storage
 ```
+
+## High Level Design (HLD)
+
+### Огляд системної архітектури
+
+Система оцінки ризиків з AI агентом на основі Таро карт представляє собою багаторівневу архітектуру, що забезпечує надійну та масштабовану обробку запитів користувачів.
+
+```mermaid
+graph TB
+    %% User Interface Layer
+    subgraph "Frontend Layer"
+        UI[Web Interface]
+        API[REST API Endpoints]
+    end
+
+    %% Application Layer
+    subgraph "Application Layer"
+        Flask[Flask Application]
+        Routes[Routes Handler]
+        Agent[Tarot AI Agent]
+    end
+
+    %% AI & ML Services
+    subgraph "AI/ML Services"
+        LLM[OpenAI GPT-4<br/>Turbo Preview]
+        RAG[RAG System<br/>LangChain]
+        Embeddings[SentenceTransformers<br/>all-MiniLM-L6-v2]
+    end
+
+    %% Data Layer
+    subgraph "Data Layer"
+        VectorStore[TarotVectorStore<br/>ChromaDB]
+        CardData[Card Data<br/>Text Files]
+        Images[Card Images<br/>Static Assets]
+    end
+
+    %% Monitoring & Observability
+    subgraph "Observability"
+        Monitor[TarotObservability]
+        Logs[Logging System]
+    end
+
+    %% External Dependencies
+    subgraph "External Services"
+        OpenAI[OpenAI API]
+    end
+
+    %% User Flow
+    User((User)) --> UI
+    UI --> API
+    API --> Routes
+    Routes --> Agent
+
+    %% Agent Processing
+    Agent --> RAG
+    Agent --> VectorStore
+    RAG --> LLM
+    LLM --> OpenAI
+
+    %% Data Flow
+    CardData --> VectorStore
+    VectorStore --> Embeddings
+    Images --> UI
+
+    %% Monitoring
+    Agent --> Monitor
+    Monitor --> Logs
+
+    %% Return Path
+    OpenAI --> LLM
+    LLM --> RAG
+    RAG --> Agent
+    Agent --> Routes
+    Routes --> API
+    API --> UI
+    UI --> User
+
+    %% Стилі для кращої читабельності на GitHub
+    classDef frontend fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef application fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef ai fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef data fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef monitoring fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    classDef external fill:#f5f5f5,stroke:#424242,stroke-width:2px,color:#000
+    classDef user fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#000
+    class UI,API frontend
+    class Flask,Routes,Agent application
+    class LLM,RAG,Embeddings ai
+    class VectorStore,CardData,Images data
+    class Monitor,Logs monitoring
+    class OpenAI external
+    class User user
+```
+
+### Детальна системна архітектура
+
+```mermaid
+graph TB
+    subgraph "Client Tier"
+        Browser[Web Browser]
+        Mobile[Mobile Device]
+    end
+
+    subgraph "Presentation Tier"
+        WebServer[Flask Web Server<br/>Port 8080]
+        StaticAssets[Static Assets<br/>- CSS/JS<br/>- Card Images<br/>- Fonts]
+        Templates[Jinja2 Templates<br/>index.html]
+    end
+
+    subgraph "Business Logic Tier"
+        subgraph "Core Services"
+            TarotAgent[Tarot Agent<br/>Main Controller]
+            DataLoader[Tarot Data Loader<br/>Text Processing]
+            Observability[Observability Service<br/>Monitoring & Logs]
+        end
+        
+        subgraph "AI Processing Pipeline"
+            RAGChain[RAG Chain<br/>Document Retrieval]
+            LLMChain[LLM Chain<br/>Response Generation]
+            CardSelector[Card Selection Logic<br/>Random Draw Algorithm]
+        end
+    end
+
+    subgraph "AI/ML Services"
+        subgraph "Language Models"
+            GPT4[OpenAI GPT-4 Turbo<br/>Temperature: 0.7]
+            Embeddings[SentenceTransformers<br/>all-MiniLM-L6-v2]
+        end
+        
+        subgraph "Prompt Engineering"
+            SystemPrompt[System Prompt<br/>Tarot Expert Persona]
+            ContextTemplate[Context Template<br/>Ukrainian Language]
+        end
+    end
+
+    subgraph "Data Persistence Tier"
+        subgraph "Vector Database"
+            ChromaDB[(ChromaDB<br/>Vector Store)]
+            Metadata[Metadata Store<br/>Card Properties]
+        end
+        
+        subgraph "File System"
+            CardDescriptions[Card Descriptions<br/>468 .txt files]
+            CardImages[Card Images<br/>206 .jpg files]
+            VectorIndex[Vector Index<br/>Persistent Storage]
+        end
+    end
+
+    subgraph "Configuration & Environment"
+        EnvConfig[Environment Config<br/>.env file]
+        Requirements[Dependencies<br/>requirements.txt]
+        VenvPython[Python Virtual Env<br/>Python 3.12]
+    end
+
+    %% User Interactions
+    Browser --> WebServer
+    Mobile --> WebServer
+    
+    %% Web Server Routing
+    WebServer --> Templates
+    WebServer --> StaticAssets
+    WebServer --> TarotAgent
+    
+    %% Core Service Interactions
+    TarotAgent --> DataLoader
+    TarotAgent --> Observability
+    TarotAgent --> RAGChain
+    TarotAgent --> CardSelector
+    
+    %% AI Pipeline
+    RAGChain --> LLMChain
+    RAGChain --> ChromaDB
+    LLMChain --> GPT4
+    LLMChain --> SystemPrompt
+    GPT4 --> ContextTemplate
+    
+    %% Data Flow
+    DataLoader --> CardDescriptions
+    DataLoader --> Embeddings
+    Embeddings --> ChromaDB
+    ChromaDB --> VectorIndex
+    ChromaDB --> Metadata
+    
+    %% Static Assets
+    CardSelector --> CardImages
+    StaticAssets --> CardImages
+    
+    %% Configuration
+    TarotAgent --> EnvConfig
+    WebServer --> VenvPython
+    VenvPython --> Requirements
+    
+    %% Стилі для кращої читабельності на GitHub
+    classDef client fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef presentation fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef business fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef ai fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef data fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    classDef config fill:#f5f5f5,stroke:#424242,stroke-width:2px,color:#000
+
+    class Browser,Mobile client
+    class WebServer,StaticAssets,Templates presentation
+    class TarotAgent,DataLoader,Observability,RAGChain,LLMChain,CardSelector business
+    class GPT4,Embeddings,SystemPrompt,ContextTemplate ai
+    class ChromaDB,Metadata,CardDescriptions,CardImages,VectorIndex data
+    class EnvConfig,Requirements,VenvPython config
+```
+
+### Потік обробки запиту
+
+```mermaid
+sequenceDiagram
+    participant User as Користувач
+    participant Browser as Веб-браузер
+    participant Flask as Flask App
+    participant Agent as Tarot Agent
+    participant Selector as Card Selector
+    participant VectorDB as ChromaDB
+    participant RAG as RAG Chain
+    participant LLM as GPT-4 API
+    participant Monitor as Observability
+
+    Note over User,Monitor: Процес отримання Таро читання
+
+    User->>Browser: Вводить питання
+    Browser->>Flask: POST /api/reading<br/>{"question": "питання"}
+    activate Flask
+    
+    Flask->>Agent: get_reading(question)
+    activate Agent
+    Agent->>Monitor: Логування початку запиту
+    
+    Note over Agent,Selector: Вибір карт
+    Agent->>Selector: _draw_cards(num_cards=3)
+    Selector-->>Agent: Список карт + положення
+    
+    Note over Agent,VectorDB: Пошук інформації про карти
+    loop Для кожної карти
+        Agent->>VectorDB: similarity_search(card_name)
+        VectorDB-->>Agent: Описи карти (top-k=5)
+    end
+    
+    Note over Agent,RAG: Формування контексту
+    Agent->>RAG: Створення контексту з описів
+    RAG->>Agent: Підготовлений prompt
+    
+    Note over Agent,LLM: Генерація інтерпретації
+    Agent->>LLM: Запит з контекстом<br/>(температура: 0.7)
+    LLM-->>Agent: Інтерпретація українською
+    
+    Note over Agent,Monitor: Обробка результату
+    Agent->>Monitor: Логування успішної відповіді
+    Agent->>Agent: Формування відповіді<br/>+ шляхи до зображень
+    
+    Agent-->>Flask: {"cards": [...], "reading": "..."}
+    deactivate Agent
+    Flask-->>Browser: JSON відповідь
+    deactivate Flask
+    Browser-->>User: Відображення карт<br/>та інтерпретації
+    
+    Note over User,Monitor: Завершення запиту
+    
+    alt Помилка в процесі
+        Agent->>Monitor: Логування помилки
+        Agent-->>Flask: Повернення помилки
+        Flask-->>Browser: Error 500
+        Browser-->>User: Повідомлення про помилку
+    end
+```
+
+### Компонентна архітектура
+
+```mermaid
+graph TD
+    subgraph "Tarot AI Risk Assessment System"
+        subgraph "Web Application"
+            FlaskApp[Flask Application<br/>- routes.py<br/>- templates/<br/>- static/]
+            WebUI[Web Interface<br/>- Adaptive Design<br/>- Card Display<br/>- Ukrainian UI]
+        end
+
+        subgraph "AI Agent Core"
+            TarotAgent[Tarot Agent<br/>- Card Selection<br/>- Reading Generation<br/>- Error Handling]
+            
+            DataLoader[Data Loader<br/>- Text File Processing<br/>- Document Preparation<br/>- Metadata Extraction]
+            
+            VectorStore[Vector Store<br/>- ChromaDB Interface<br/>- Similarity Search<br/>- Document Storage]
+        end
+
+        subgraph "AI/ML Pipeline"
+            RAGSystem[RAG System<br/>- Retrieval Chain<br/>- Context Formation<br/>- Document Combination]
+            
+            LLMInterface[LLM Interface<br/>- GPT-4 Integration<br/>- Prompt Templates<br/>- Response Processing]
+            
+            Embeddings[Embedding Service<br/>- SentenceTransformers<br/>- Vector Generation<br/>- Text Encoding]
+        end
+
+        subgraph "Data Storage"
+            CardDatabase[Card Database<br/>- 78 Tarot Cards<br/>- Multiple Descriptions<br/>- Upright/Reversed]
+            
+            VectorDB[Vector Database<br/>- ChromaDB<br/>- Persistent Storage<br/>- Similarity Index]
+            
+            ImageAssets[Image Assets<br/>- Card Images<br/>- Multiple Decks<br/>- Static Files]
+        end
+
+        subgraph "Infrastructure"
+            Observability[Observability<br/>- Logging<br/>- Monitoring<br/>- Error Tracking]
+            
+            Configuration[Configuration<br/>- Environment Variables<br/>- API Keys<br/>- Settings]
+            
+            Dependencies[Dependencies<br/>- Python Packages<br/>- Virtual Environment<br/>- Requirements]
+        end
+    end
+
+    subgraph "External Services"
+        OpenAIAPI[OpenAI API<br/>- GPT-4 Turbo<br/>- Rate Limiting<br/>- Authentication]
+    end
+
+    subgraph "Development Tools"
+        InitDB[Database Initialization<br/>- init_db.py<br/>- verify_db.py<br/>- check_documents.py]
+        
+        Testing[Testing Suite<br/>- test_rag.py<br/>- RAG Testing<br/>- Integration Tests]
+    end
+
+    %% Main connections
+    FlaskApp --> TarotAgent
+    TarotAgent --> DataLoader
+    TarotAgent --> VectorStore
+    TarotAgent --> RAGSystem
+    TarotAgent --> Observability
+
+    DataLoader --> CardDatabase
+    DataLoader --> Embeddings
+    VectorStore --> VectorDB
+    RAGSystem --> LLMInterface
+    RAGSystem --> VectorStore
+
+    LLMInterface --> OpenAIAPI
+    Embeddings --> VectorDB
+    
+    WebUI --> ImageAssets
+    TarotAgent --> Configuration
+    
+    %% Development connections
+    InitDB --> VectorDB
+    InitDB --> CardDatabase
+    Testing --> TarotAgent
+    
+    %% Infrastructure connections
+    FlaskApp --> Dependencies
+    TarotAgent --> Dependencies
+
+    %% Стилі для кращої читабельності на GitHub
+    classDef webapp fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef aicore fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef mlpipeline fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef datastorage fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef infrastructure fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    classDef external fill:#f5f5f5,stroke:#424242,stroke-width:2px,color:#000
+    classDef devtools fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#000
+
+    class FlaskApp,WebUI webapp
+    class TarotAgent,DataLoader,VectorStore aicore
+    class RAGSystem,LLMInterface,Embeddings mlpipeline
+    class CardDatabase,VectorDB,ImageAssets datastorage
+    class Observability,Configuration,Dependencies infrastructure
+    class OpenAIAPI external
+    class InitDB,Testing devtools
+```
+
+### Архітектурні принципи
+
+1. **Модульність**: Система розділена на чіткі компоненти з визначеними обов'язками
+2. **Масштабованість**: Використання векторних баз даних та асинхронної обробки
+3. **Спостережуваність**: Вбудована система моніторингу та логування
+4. **Безпека**: Керування API ключами через змінні середовища
+5. **Підтримуваність**: Чітка структура коду та документація
+
+### Технічні характеристики HLD
+
+#### Продуктивність
+- **Час відповіді**: 3-7 секунд на запит
+- **Конкурентність**: Асинхронна обробка запитів
+- **Пропускна здатність**: До 10 одночасних користувачів
+- **Кешування**: Векторні ембедінги зберігаються локально
+
+#### Надійність
+- **Error Handling**: Обробка помилок на всіх рівнях
+- **Logging**: Детальне логування для діагностики
+- **Fallback**: Резервні механізми при збоях API
+- **Validation**: Валідація вхідних даних
+
+#### Безпека
+- **API Keys**: Зберігання в змінних середовища
+- **Input Validation**: Перевірка користувацьких даних
+- **Error Disclosure**: Запобігання витоку системної інформації
+- **Rate Limiting**: Контроль частоти запитів
 
 ### Компоненти системи
 
@@ -150,8 +585,8 @@ tarot/
 
 1. **Клонування репозиторію**
    ```bash
-   git clone https://github.com/your-username/tarot.git
-   cd tarot
+   git clone [https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system](https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system)
+   cd fwdays-hackaton-ai-agent-risk-assessment-system
    ```
 
 2. **Створення віртуального середовища**
