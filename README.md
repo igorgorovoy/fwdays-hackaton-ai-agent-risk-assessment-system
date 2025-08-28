@@ -858,21 +858,21 @@ python rag_evaluate.py --explain
 
 **1. Метрики витягування (Retrieval Metrics)**
 
-- **Precision (Точність)**
+- **[Precision (Точність)](https://en.wikipedia.org/wiki/Precision_and_recall#Precision)**
   ```
   Precision = Правильно витягнуті карти / Всі витягнуті карти
   ```
   - Показує, скільки з витягнутих карт були правильними
   - Приклад: витягли 3 карти, 2 правильні → Precision = 2/3 = 0.67
 
-- **Recall (Повнота)**
+- **[Recall (Повнота)](https://en.wikipedia.org/wiki/Precision_and_recall#Recall)**
   ```
   Recall = Правильно витягнуті карти / Всі очікувані карти
   ```
   - Показує, скільки очікуваних карт було знайдено
   - Приклад: очікували 2 карти, знайшли 1 → Recall = 1/2 = 0.5
 
-- **F1 Score (Гармонічне середнє)**
+- **[F1 Score (Гармонічне середнє)](https://en.wikipedia.org/wiki/F-score)**
   ```
   F1 = 2 × (Precision × Recall) / (Precision + Recall)
   ```
@@ -883,9 +883,9 @@ python rag_evaluate.py --explain
 
 **2. Метрики контенту**
 
-- **Keyword Presence**: Відсоток наявності очікуваних ключових слів у відповіді
-- **Context Score**: Оцінка правильності контекстуальної інформації
-- **Response Quality**: Аналіз якості згенерованої відповіді
+- **[Keyword Presence](https://en.wikipedia.org/wiki/Keyword_research)**: Відсоток наявності очікуваних ключових слів у відповіді
+- **[Context Score](https://en.wikipedia.org/wiki/Context_(computing))**: Оцінка правильності контекстуальної інформації
+- **[Response Quality](https://en.wikipedia.org/wiki/Text_mining#Quality_assessment)**: Аналіз якості згенерованої відповіді
 
 #### Тестові випадки
 
