@@ -17,6 +17,12 @@ class TarotAgentWithGuardrails(TarotAgent):
         
         # Ініціалізуємо Guardrails
         self.guardrails = TarotGuardrails()
+        
+        # Логер вже ініціалізовано в батьківському класі
+        import logging
+        if not hasattr(self, 'logger'):
+            self.logger = logging.getLogger(__name__)
+        
         self.logger.info("Guardrails ініціалізовано успішно")
     
     async def get_reading_safe(self, question: str, num_cards: int = 3) -> dict:
@@ -87,13 +93,14 @@ class TarotAgentWithGuardrails(TarotAgent):
                 self.logger.error(f"Помилка при обробці запиту: {str(e)}")
                 raise
 
-    @apply_guardrails(TarotGuardrails())
     async def get_reading_with_decorator(self, question: str, num_cards: int = 3) -> dict:
         """
         Альтернативний підхід - використання декоратора
         Guardrails застосовуються автоматично
         """
-        return await super().get_reading(question, num_cards)
+        # Застосовуємо декоратор вручну з нашим екземпляром guardrails
+        decorated_method = apply_guardrails(self.guardrails)(super().get_reading)
+        return await decorated_method(question, num_cards)
 
     def get_guardrails_report(self) -> dict:
         """Отримання детального звіту про роботу Guardrails"""
