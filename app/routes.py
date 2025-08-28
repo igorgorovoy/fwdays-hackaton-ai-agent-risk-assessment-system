@@ -71,3 +71,44 @@ def get_card_info(card_name):
         return jsonify({'error': 'Card not found'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/guardrails/stats', methods=['GET'])
+def get_guardrails_stats():
+    """Get Guardrails statistics"""
+    try:
+        if hasattr(agent, 'guardrails'):
+            stats = agent.guardrails.get_stats()
+            return jsonify(stats)
+        return jsonify({'error': 'Guardrails not initialized'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/guardrails/reset', methods=['POST'])
+def reset_guardrails_stats():
+    """Reset Guardrails statistics"""
+    try:
+        if hasattr(agent, 'guardrails'):
+            agent.guardrails.reset_stats()
+            return jsonify({'message': 'Statistics reset successfully'})
+        return jsonify({'error': 'Guardrails not initialized'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    try:
+        stats = {}
+        if hasattr(agent, 'guardrails'):
+            stats = agent.guardrails.get_stats()
+        
+        return jsonify({
+            'status': 'healthy',
+            'vector_store_initialized': agent.vector_store is not None,
+            'guardrails_stats': stats
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e)
+        }), 500
