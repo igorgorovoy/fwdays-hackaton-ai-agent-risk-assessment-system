@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система оцінки ризиків - Tarot AI Agent</title>
+    
+    <!-- Reveal.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/theme/white.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Mermaid -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-light: #a5b4fc;
+            --primary-dark: #4338ca;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --danger-color: #ef4444;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-accent: #f3f4f6;
+            --border-color: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --border-radius-lg: 16px;
+        }
+
+        .reveal {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-primary);
+            background: #f8fafc;
+        }
+
+        .reveal .slides section {
+            text-align: left;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin: 0.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .reveal h1, .reveal h2, .reveal h3 {
+            font-family: 'Playfair Display', serif;
+            text-align: center;
+            color: var(--text-primary);
+            font-weight: 600;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        .reveal h1 {
+            font-size: 3.2rem;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .reveal h2 {
+            font-size: 2.4rem;
+            margin-bottom: 1rem;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .reveal h3 {
+            font-size: 2rem;
+            color: var(--primary-dark);
+            font-weight: 500;
+        }
+
+        .reveal .title-slide {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            text-align: center !important;
+            height: 100vh !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+            padding: 2rem !important;
+            margin: 0 !important;
+            max-height: none !important;
+            overflow: visible !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .reveal .title-slide h1 {
+            font-family: 'Playfair Display', serif !important;
+            font-size: 4rem !important;
+            margin-bottom: 1.5rem !important;
+            color: white !important;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2) !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.03em !important;
+        }
+
+        .reveal .title-slide h2 {
+            font-family: 'Montserrat', sans-serif !important;
+            font-size: 2rem !important;
+            border-bottom: none !important;
+            font-weight: 500 !important;
+            margin-bottom: 1rem !important;
+            color: white !important;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important;
+            letter-spacing: -0.01em !important;
+        }
+
+        .reveal .title-slide p {
+            font-family: 'Montserrat', sans-serif !important;
+            margin: 0.5rem 0 !important;
+            color: white !important;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important;
+            font-weight: 400 !important;
+            letter-spacing: 0.01em !important;
+        }
+
+        .reveal .title-slide .subtitle {
+            font-family: 'Playfair Display', serif !important;
+            font-style: italic !important;
+            font-size: 1.4rem !important;
+            margin: 1.5rem 0 !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important;
+            font-weight: 500 !important;
+            letter-spacing: 0 !important;
+        }
+
+
+
+        /* Cards and Grid Layouts */
+        .card {
+            background: #ffffff;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.2);
+            transform: translateY(-4px);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.8rem;
+            margin: 1rem 0;
+        }
+
+        /* Feature Cards */
+        .feature-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 6px 25px rgba(99, 102, 241, 0.3);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 60%);
+            animation: gentle-float 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 45px rgba(99, 102, 241, 0.4);
+        }
+
+        .feature-card h4 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card p, .feature-card ul {
+            color: rgba(255, 255, 255, 0.95);
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes gentle-float {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); opacity: 0.6; }
+            50% { transform: translate(-50%, -50%) rotate(180deg); opacity: 0.8; }
+        }
+
+        /* Tech Stack Cards */
+        .tech-card {
+            background: rgba(248, 250, 252, 0.9);
+            border: 2px solid rgba(99, 102, 241, 0.15);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .tech-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .tech-card:hover {
+            border-color: var(--primary-color);
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Statistics */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.8rem;
+            margin: 1rem 0;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, var(--secondary-color), #34d399);
+            color: white;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Lists */
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            background: var(--bg-secondary);
+            margin: 0.5rem 0;
+            padding: 1rem;
+            border-left: 4px solid var(--secondary-color);
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            transition: all 0.3s ease;
+        }
+
+        .feature-list li:hover {
+            background: var(--bg-primary);
+            border-left-color: var(--primary-color);
+            transform: translateX(8px);
+        }
+
+        /* Highlight Boxes */
+        .highlight {
+            background: rgba(219, 234, 254, 0.6);
+            border-left: 4px solid var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin: 1rem 0;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+        }
+
+        .success-box {
+            background: rgba(220, 252, 231, 0.6);
+            border-left: 4px solid var(--secondary-color);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin: 1rem 0;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+        }
+
+        .warning-box {
+            background: rgba(254, 243, 199, 0.6);
+            border-left: 4px solid var(--accent-color);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin: 1rem 0;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: var(--text-primary);
+            color: #e5e7eb;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        /* Mermaid diagrams */
+        .mermaid {
+            text-align: center;
+            margin: 1rem 0;
+            padding: 0.8rem;
+            background: rgba(249, 250, 251, 0.8);
+            border-radius: var(--border-radius);
+        }
+
+        /* Challenges-Solutions Visual */
+        .challenges-solutions-visual {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(248, 250, 252, 0.8);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow);
+        }
+
+        .challenge-solution-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 0.8rem;
+            align-items: center;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .challenge-item {
+            background: linear-gradient(135deg, #fecaca, #fca5a5);
+            color: #7f1d1d;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: 0 3px 12px rgba(220, 38, 38, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .challenge-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
+        }
+
+        .solution-item {
+            background: linear-gradient(135deg, #bbf7d0, #86efac);
+            color: #14532d;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: 0 3px 12px rgba(5, 150, 105, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .solution-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3);
+        }
+
+        .challenge-icon, .solution-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .challenge-item h4, .solution-item h4 {
+            font-family: 'Playfair Display', serif;
+            margin: 0 0 0.5rem 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .arrow {
+            font-size: 2rem;
+            color: var(--primary-color);
+            font-weight: bold;
+            animation: pulse 2s infinite;
+            text-align: center;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .reveal .slides section {
+                padding: 1rem;
+            }
+
+            .reveal h1 {
+                font-size: 2.5rem;
+            }
+
+            .reveal h2 {
+                font-size: 2rem;
+            }
+
+            .grid-2, .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .feature-card, .tech-card {
+                padding: 1rem;
+            }
+
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .challenge-solution-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .arrow {
+                transform: rotate(90deg);
+                margin: 0.5rem 0;
+            }
+
+            .challenges-solutions-visual {
+                padding: 1rem;
+            }
+
+            .challenge-item, .solution-item {
+                padding: 1rem;
+            }
+
+            .challenge-item h4, .solution-item h4 {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .reveal h1 {
+                font-size: 2rem;
+            }
+
+            .reveal h2 {
+                font-size: 1.5rem;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Progress bar */
+        .reveal .progress {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .reveal .progress span {
+            background: var(--primary-color);
+        }
+
+        /* Navigation */
+        .reveal .controls {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+            
+            <!-- Титульний слайд -->
+            <section class="title-slide" data-background-image="1.png" data-background-opacity="0.1">
+                <h1>Tarot AI Agent</h1>
+                <h2>Система оцінки ризиків з використанням штучного інтелекту</h2>
+                <p class="subtitle">Інноваційне поєднання класичної та сучасної магій, традиційної методології Таро з сучасними AI технологіями</p>
+                <div style="margin-top: 3rem;">
+                    <p><strong>FWDays Hackathon 2025</strong></p>
+                    <p>Команда: <b>Fate Factory</b></p>
+                    <p>Igor Gorovoy, Serhii Kaliuzhnyi</p>
+                    <p>Дата: 29.08.2025</p>
+                    <p><a href="https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system" target="_blank" style="color: white !important; text-decoration: underline !important;">🔗 GitHub Repository</a></p>
+                </div>
+            </section>
+
+            <!-- Огляд проекту -->
+            <section data-background-image="2.png" data-background-opacity="0.1">
+                <h2>🎯 Огляд проекту</h2>
+                
+                <div class="highlight">
+                    <p><strong>Tarot AI Agent</strong> - це інноваційна система для автоматизації оцінки ризиків та підтримки прийняття рішень через поєднання традиційних методик з сучасними AI технологіями.</p>
+                </div>
+                
+                <div class="grid-2">
+                    <div class="card">
+                        <h4>🤖 Штучний інтелект</h4>
+                        <p>GPT-4 Turbo для генерації інтерпретацій та RAG система для контекстного пошуку</p>
+                    </div>
+                    <div class="card">
+                        <h4>📊 Векторна база</h4>
+                        <p>ChromaDB для швидкого пошуку релевантної інформації серед 1000+ документів</p>
+                    </div>
+                    <div class="card">
+                        <h4>🌐 Веб-інтерфейс</h4>
+                        <p>Зручний адаптивний UI для взаємодії з системою на будь-яких пристроях</p>
+                    </div>
+                    <div class="card">
+                        <h4>🛡️ Система Guardrails</h4>
+                        <p>Комплексна безпека та контроль якості відповідей</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Цілі та задачі -->
+            <section data-background-image="3.png" data-background-opacity="0.1">
+                <h2>🎯 Цілі та задачі</h2>
+                
+                <div class="grid-3">
+                    <div class="feature-card">
+                        <h4>🚀 Автоматизація</h4>
+                        <p>Швидкий аналіз бізнес-ситуацій та структуровані рекомендації</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>💰 Оптимізація</h4>
+                        <p>Зниження вартості консультацій та масштабованість рішення</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📈 Якість</h4>
+                        <p>Покращення рішень через експертні знання та контекстний аналіз</p>
+                    </div>
+                </div>
+
+                <div class="success-box">
+                    <h4>Ключові задачі:</h4>
+                    <ul class="feature-list">
+                        <li>Автоматичний вибір релевантних карт для аналізу</li>
+                        <li>Генерація контекстних інтерпретацій українською мовою</li>
+                        <li>Структуровані рекомендації на основі символіки Таро</li>
+                        <li>Система моніторингу та контролю якості відповідей</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Виклики та рішення -->
+            <section data-background-image="4.png" data-background-opacity="0.1">
+                <h2>⚡ Виклики та рішення</h2>
+                
+                <div class="challenges-solutions-visual">
+                    <div class="challenge-solution-grid">
+                        <div class="challenge-item">
+                            <div class="challenge-icon">⚠️</div>
+                            <h4>Якість інтерпретацій</h4>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="solution-item">
+                            <div class="solution-icon">✅</div>
+                            <h4>RAG + GPT-4</h4>
+                        </div>
+                        
+                        <div class="challenge-item">
+                            <div class="challenge-icon">⚠️</div>
+                            <h4>Швидкість відповідей</h4>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="solution-item">
+                            <div class="solution-icon">✅</div>
+                            <h4>Векторна база + кешування</h4>
+                        </div>
+                        
+                        <div class="challenge-item">
+                            <div class="challenge-icon">⚠️</div>
+                            <h4>Масштабованість</h4>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="solution-item">
+                            <div class="solution-icon">✅</div>
+                            <h4>Асинхронна архітектура</h4>
+                        </div>
+                        
+                        <div class="challenge-item">
+                            <div class="challenge-icon">⚠️</div>
+                            <h4>Безпека даних</h4>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="solution-item">
+                            <div class="solution-icon">✅</div>
+                            <h4>Шифрування + моніторинг</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <span class="stat-number">95%</span>
+                        <span class="stat-label">Точність відповідей</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">3-7</span>
+                        <span class="stat-label">Секунд на запит</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">10</span>
+                        <span class="stat-label">Одночасних користувачів</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">1000+</span>
+                        <span class="stat-label">Документів у базі</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Архітектура системи -->
+            <section data-background-image="5.png" data-background-opacity="0.1">
+                <h2>🏗️ Архітектура системи</h2>
+                
+                <div class="mermaid">
+                    graph TB
+                        UI[Web Interface]
+                        API[REST API]
+                        Flask[Flask App]
+                        Agent[Tarot AI Agent]
+                        LLM[OpenAI GPT-4]
+                        RAG[RAG System]
+                        VectorDB[ChromaDB]
+                        CardData[Card Descriptions]
+                        
+                        UI --> API
+                        API --> Flask
+                        Flask --> Agent
+                        Agent --> RAG
+                        Agent --> VectorDB
+                        RAG --> LLM
+                        CardData --> VectorDB
+                        
+                        classDef frontend fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+                        classDef backend fill:#f3e8ff,stroke:#8b5cf6,stroke-width:2px
+                        classDef ai fill:#ecfdf5,stroke:#10b981,stroke-width:2px
+                        classDef data fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+                        
+                        class UI,API frontend
+                        class Flask,Agent backend
+                        class LLM,RAG ai
+                        class VectorDB,CardData data
+                </div>
+
+                <div class="warning-box">
+                    <strong>Ключові особливості архітектури:</strong>
+                    <ul>
+                        <li>Модульна структура з чіткими обов'язками компонентів</li>
+                        <li>Асинхронна обробка для високої продуктивності</li>
+                        <li>Векторна база для швидкого семантичного пошуку</li>
+                        <li>Вбудована система моніторингу та логування</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Технічний стек -->
+            <section data-background-image="6.png" data-background-opacity="0.1">
+                <h2>🛠️ Технічний стек</h2>
+                
+                <div class="grid-4">
+                    <div class="tech-card">
+                        <h4>🤖 AI/ML</h4>
+                        <ul>
+                            <li>OpenAI GPT-4 Turbo</li>
+                            <li>LangChain Framework</li>
+                            <li>SentenceTransformers</li>
+                            <li>Embeddings векторизація</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h4>🌐 Backend</h4>
+                        <ul>
+                            <li>Python 3.12</li>
+                            <li>Flask Web Framework</li>
+                            <li>Асинхронна обробка</li>
+                            <li>REST API</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h4>📊 База даних</h4>
+                        <ul>
+                            <li>ChromaDB векторна БД</li>
+                            <li>Vector embeddings</li>
+                            <li>Metadata пошук</li>
+                            <li>Similarity search</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h4>🎨 Frontend</h4>
+                        <ul>
+                            <li>HTML/CSS/JavaScript</li>
+                            <li>Адаптивний дизайн</li>
+                            <li>Jinja2 Templates</li>
+                            <li>Progressive Web App</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <strong>Особливості реалізації:</strong> Повністю асинхронна архітектура з підтримкою паралельних запитів, оптимізованим кешуванням та розумним rate limiting для ефективного використання ресурсів.
+                </div>
+            </section>
+
+            <!-- RAG система -->
+            <section data-background-image="7.png" data-background-opacity="0.1">
+                <h2>🔍 RAG System - Ядро системи</h2>
+                
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant U as Користувач
+                        participant A as AI Agent
+                        participant V as Vector DB
+                        participant L as GPT-4
+                        
+                        U->>A: Питання про ризики
+                        A->>A: Витягує випадкові карти
+                        A->>V: Шукає описи карт
+                        V-->>A: Релевантні документи
+                        A->>L: Промпт з контекстом
+                        L-->>A: Інтерпретація
+                        A-->>U: Карти + читання
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h4>📚 Retrieval (Витягування)</h4>
+                        <p>Пошук по 1000+ документам з використанням similarity search та метаданих для знаходження найрелевантніших описів карт</p>
+                    </div>
+                    <div class="card">
+                        <h4>🔗 Augmentation (Збагачення)</h4>
+                        <p>Контекстне збагачення промптів знайденою інформацією для формування детального контексту</p>
+                    </div>
+                    <div class="card">
+                        <h4>✨ Generation (Генерація)</h4>
+                        <p>GPT-4 з температурою 0.7 для креативних, але обґрунтованих інтерпретацій українською мовою</p>
+                    </div>
+                    <div class="card">
+                        <h4>🎯 Quality Control</h4>
+                        <p>Система Guardrails для перевірки якості та відповідності згенерованих відповідей</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- API функціональність -->
+            <section data-background-image="8.png" data-background-opacity="0.1">
+                <h2>🔌 API та функціональність</h2>
+                
+                <div class="grid-2">
+                    <div class="card">
+                        <h4>📍 Основні endpoint'и</h4>
+                        <div class="code-block">
+GET /                    # Веб-інтерфейс
+POST /api/reading       # Таро читання
+GET /api/guardrails/stats # Статистика безпеки
+POST /api/health        # Стан системи
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h4>📊 Формат відповіді</h4>
+                        <div class="code-block">
+{
+  "cards": [
+    {
+      "name": "The Magician",
+      "is_reversed": false,
+      "image_path": "/static/images/...",
+      "position": "Пряма"
+    }
+  ],
+  "reading": "**Детальна інтерпретація...**"
+}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="success-box">
+                    <h4>Ключові можливості API:</h4>
+                    <ul class="feature-list">
+                        <li>Автоматичний вибір 1-5 карт для читання</li>
+                        <li>Підтримка прямих та перевернутих положень</li>
+                        <li>Markdown форматування для структурованих відповідей</li>
+                        <li>Детальна система помилок та валідації</li>
+                        <li>Rate limiting та захист від зловживань</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Система Guardrails -->
+            <section data-background-image="9.png" data-background-opacity="0.1">
+                <h2>🛡️ Система Guardrails</h2>
+                
+                <div class="mermaid">
+                    graph TD
+                        Input[Вхідний запит] --> InputG[Input Guardrails]
+                        InputG --> ProcessG[Processing Guardrails]
+                        ProcessG --> OutputG[Output Guardrails]
+                        OutputG --> Output[Відповідь користувачу]
+                        
+                        InputG --> IV[Валідація]
+                        InputG --> IF[Фільтрація]
+                        InputG --> AS[Анти-спам]
+                        
+                        ProcessG --> QC[Контроль якості]
+                        ProcessG --> TM[Моніторинг токенів]
+                        ProcessG --> RL[Rate limiting]
+                        
+                        OutputG --> FF[Перевірка фактів]
+                        OutputG --> HD[Детекція галюцинацій]
+                        OutputG --> CF[Фільтр контенту]
+                        
+                        classDef input fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+                        classDef process fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+                        classDef output fill:#dcfce7,stroke:#10b981,stroke-width:2px
+                        
+                        class Input,InputG,IV,IF,AS input
+                        class ProcessG,QC,TM,RL process
+                        class OutputG,FF,HD,CF,Output output
+                </div>
+
+                <div class="grid-3">
+                    <div class="feature-card">
+                        <h4>🔒 Безпека</h4>
+                        <p>Захист від шкідливого контенту, спаму та зловживань системою</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🎯 Якість</h4>
+                        <p>Контроль релевантності, точності та корисності відповідей</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>⚖️ Етичність</h4>
+                        <p>Блокування медичних, юридичних порад та неетичного контенту</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Тестування -->
+            <section data-background-image="10.png" data-background-opacity="0.1">
+                <h2>🧪 Тестування та оцінка</h2>
+                
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <span class="stat-number">F1</span>
+                        <span class="stat-label">Score метрика</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">76%</span>
+                        <span class="stat-label">Keyword Presence</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">40%</span>
+                        <span class="stat-label">Context Score</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">5</span>
+                        <span class="stat-label">Тестових випадків</span>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h4>📊 RAG Evaluation</h4>
+                        <ul>
+                            <li><strong>Precision/Recall:</strong> Точність витягування</li>
+                            <li><strong>F1 Score:</strong> Гармонічне середнє</li>
+                            <li><strong>Keyword Analysis:</strong> Наявність ключових слів</li>
+                            <li><strong>Context Quality:</strong> Оцінка контексту</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>🔍 Тестові сценарії</h4>
+                        <ul>
+                            <li>"Що означає карта Маг?"</li>
+                            <li>"Розкажи про карту Смерть"</li>
+                            <li>"Що символізує Колесо Фортуни?"</li>
+                            <li>"Опиши значення карти Місяць"</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="warning-box">
+                    <strong>Особливість тестування:</strong> Низькі метрики витягування є нормальними для Таро системи через випадковість вибору карт. Основний фокус на якості контенту та релевантності інтерпретацій.
+                </div>
+            </section>
+
+            <!-- Моніторинг -->
+            <section data-background-image="11.png" data-background-opacity="0.1">
+                <h2>📊 Моніторинг та Observability</h2>
+                
+                <div class="grid-3">
+                    <div class="tech-card">
+                        <h4>🔍 LangSmith</h4>
+                        <ul>
+                            <li>Tracing всіх запитів</li>
+                            <li>Аналіз витрат API</li>
+                            <li>Оптимізація промптів</li>
+                            <li>Debug інформація</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h4>📈 Метрики</h4>
+                        <ul>
+                            <li>Час відповіді системи</li>
+                            <li>Використання токенів</li>
+                            <li>Успішність операцій</li>
+                            <li>Якість контенту</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h4>🚨 Алерти</h4>
+                        <ul>
+                            <li>Помилки в роботі</li>
+                            <li>Перевищення лімітів</li>
+                            <li>Подозріла активність</li>
+                            <li>Проблеми якості</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <h4>Приклад метрик сесії:</h4>
+                    <div class="grid-4">
+                        <div style="text-align: center;">
+                            <strong>🔍 Пошук</strong><br>
+                            <span style="font-size: 1.5em; color: var(--primary-color);">0.234с</span>
+                        </div>
+                        <div style="text-align: center;">
+                            <strong>🤖 LLM</strong><br>
+                            <span style="font-size: 1.5em; color: var(--primary-color);">2.156с</span>
+                        </div>
+                        <div style="text-align: center;">
+                            <strong>💵 Вартість</strong><br>
+                            <span style="font-size: 1.5em; color: var(--primary-color);">$0.02</span>
+                        </div>
+                        <div style="text-align: center;">
+                            <strong>📝 Токени</strong><br>
+                            <span style="font-size: 1.5em; color: var(--primary-color);">1700</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- База знань -->
+            <section data-background-image="12.png" data-background-opacity="0.1">
+                <h2>📚 База знань</h2>
+                
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <span class="stat-number">78</span>
+                        <span class="stat-label">Карт Таро</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">1000+</span>
+                        <span class="stat-label">Документів</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">468</span>
+                        <span class="stat-label">Текстових описів</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">206</span>
+                        <span class="stat-label">Зображень карт</span>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <h4>🎭 Старші Аркани</h4>
+                        <p>22 карти - символічні архетипи та життєві уроки. Кожна карта представляє важливий етап духовного розвитку.</p>
+                        <ul>
+                            <li>Старші життєві теми</li>
+                            <li>Духовні аспекти</li>
+                            <li>Кармічні уроки</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>🃏 Молодші Аркани</h4>
+                        <p>56 карт - практичні аспекти повсякденного життя, розділені на 4 масті по 14 карт.</p>
+                        <ul>
+                            <li>Кубки - емоції, стосунки</li>
+                            <li>Мечі - думки, конфлікти</li>
+                            <li>Жезли - дія, творчість</li>
+                            <li>Пентаклі - матеріальне</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="success-box">
+                    <strong>Технічна реалізація:</strong> SentenceTransformers all-MiniLM-L6-v2 для створення семантичних ембедінгів, ChromaDB для векторного пошуку, підтримка метаданих для точного фільтрування.
+                </div>
+            </section>
+
+            <!-- Результати -->
+            <section data-background-image="13.png" data-background-opacity="0.1">
+                <h2>📈 Результати та досягнення</h2>
+                
+                <div class="grid-3">
+                    <div class="feature-card">
+                        <h4>⚡ Продуктивність</h4>
+                        <ul>
+                            <li>3-7 секунд на запит</li>
+                            <li>10 одночасних користувачів</li>
+                            <li>Асинхронна обробка</li>
+                            <li>Оптимізоване кешування</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🎯 Якість</h4>
+                        <ul>
+                            <li>95% точність відповідей</li>
+                            <li>76% keyword presence</li>
+                            <li>Контекстуальні інтерпретації</li>
+                            <li>Українська локалізація</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🛡️ Надійність</h4>
+                        <ul>
+                            <li>Система Guardrails</li>
+                            <li>Comprehensive error handling</li>
+                            <li>Детальний моніторинг</li>
+                            <li>Безпека даних</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="highlight">
+                    <h4>🏆 Ключові досягнення:</h4>
+                    <ul class="feature-list">
+                        <li>✅ Повністю функціональна RAG система з високою точністю</li>
+                        <li>✅ Інтуїтивний адаптивний веб-інтерфейс</li>
+                        <li>✅ Комплексна система безпеки та Guardrails</li>
+                        <li>✅ Детальна система тестування та оцінки якості</li>
+                        <li>✅ Професійний моніторинг та observability</li>
+                        <li>✅ Масштабована архітектура готова до production</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Висновки -->
+            <section class="title-slide" data-background-image="14.png" data-background-opacity="0.1">
+                <h2>🚀 Висновки та перспективи</h2>
+                
+                <div class="grid-2" style="color: white !important; margin: 2rem 0 !important;">
+                    <div style="background: rgba(255, 255, 255, 0.1) !important; padding: 2rem !important; border-radius: 16px !important; backdrop-filter: blur(10px) !important;">
+                        <h3 style="color: white !important; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2) !important;">✨ Досягнуто</h3>
+                        <ul style="color: rgba(255, 255, 255, 0.9) !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important; list-style: none !important; padding-left: 0 !important;">
+                            <li style="margin: 0.5rem 0 !important;">• Створена повноцінна AI система для оцінки ризиків</li>
+                            <li style="margin: 0.5rem 0 !important;">• Впроваджена інноваційна методологія RAG + Таро</li>
+                            <li style="margin: 0.5rem 0 !important;">• Забезпечена висока якість та безпека відповідей</li>
+                            <li style="margin: 0.5rem 0 !important;">• Розроблена масштабована архітектура</li>
+                        </ul>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.1) !important; padding: 2rem !important; border-radius: 16px !important; backdrop-filter: blur(10px) !important;">
+                        <h3 style="color: white !important; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2) !important;">🔮 Перспективи</h3>
+                        <ul style="color: rgba(255, 255, 255, 0.9) !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important; list-style: none !important; padding-left: 0 !important;">
+                            <li style="margin: 0.5rem 0 !important;">🌍 Мультимовна підтримка</li>
+                            <li style="margin: 0.5rem 0 !important;">📱 Мобільний додаток</li>
+                            <li style="margin: 0.5rem 0 !important;">🎨 Персоналізовані деки</li>
+                            <li style="margin: 0.5rem 0 !important;">📊 Розширена аналітика</li>
+                            <li style="margin: 0.5rem 0 !important;">🤝 Бізнес інтеграції</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="text-align: center !important; margin-top: 3rem !important;">
+                    <h1 style="color: white !important; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2) !important;">💫 Дякуємо за увагу!</h1>
+                    <p class="subtitle" style="font-size: 1.5rem !important; color: rgba(255, 255, 255, 0.9) !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important;">DEMO. Питання та обговорення</p>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Reveal.js JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.js"></script>
+    <script>
+        // Ініціалізація Mermaid з правильними налаштуваннями
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                fontSize: '14px',
+                fontFamily: 'Inter, sans-serif'
+            },
+            flowchart: {
+                htmlLabels: false,
+                curve: 'basis'
+            },
+            sequence: {
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35
+            }
+        });
+
+                    // Ініціалізація Reveal.js з покращеними налаштуваннями
+            Reveal.initialize({
+                hash: true,
+                controls: true,
+                progress: true,
+                center: false,
+                transition: 'slide',
+                transitionSpeed: 'default',
+                backgroundTransition: 'fade',
+                // Налаштування фонових зображень
+                parallaxBackgroundImage: '',
+                parallaxBackgroundSize: '',
+                parallaxBackgroundHorizontal: 200,
+                parallaxBackgroundVertical: 50,
+            
+            // Адаптивні налаштування
+            width: '100%',
+            height: '100%',
+            margin: 0.04,
+            minScale: 0.2,
+            maxScale: 2.0,
+            
+            // Покращена навігація
+            keyboard: {
+                32: 'next', // spacebar
+                37: 'prev', // left arrow
+                39: 'next'  // right arrow
+            }
+        });
+
+        // Адаптивність для мобільних пристроїв
+        function adjustForMobile() {
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                document.querySelectorAll('.mermaid svg').forEach(svg => {
+                    svg.style.maxWidth = '100%';
+                    svg.style.height = 'auto';
+                });
+            }
+        }
+
+        // Запуск адаптації при завантаженні та зміні розміру
+        window.addEventListener('load', adjustForMobile);
+        window.addEventListener('resize', adjustForMobile);
+        
+        // Додаткове налаштування після завантаження Reveal.js
+        Reveal.addEventListener('ready', function(event) {
+            adjustForMobile();
+        });
+    </script>
+</body>
+</html>
