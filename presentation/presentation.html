@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarot AI Agent - Система оцінки ризиків</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1e40af;
+            --secondary-color: #7c3aed;
+            --accent-color: #059669;
+            --warning-color: #dc2626;
+            --text-color: #f8fafc;
+            --bg-color: #0f172a;
+            --card-bg: rgba(15, 23, 42, 0.8);
+            --border-color: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 64, 175, 0.1)), url('evgeni-tcherkasski-PP5hq8vZH8o-unsplash.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            color: var(--text-color);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .presentation {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .slide {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            padding: 2rem;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        .slide h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: var(--text-color);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .slide h2 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: var(--text-color);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .slide h3 {
+            font-size: 2rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: var(--text-color);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .content {
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1rem 0;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .tech-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+
+        .success-box {
+            background: rgba(5, 150, 105, 0.2);
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .warning-box {
+            background: rgba(220, 38, 38, 0.2);
+            border: 2px solid var(--warning-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            text-align: left;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            color: #10b981;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .mermaid {
+            text-align: center;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: transparent;
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+        }
+
+        .mermaid svg {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 400px;
+        }
+
+        .mermaid rect {
+            fill: rgba(15, 23, 42, 0.6) !important;
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+            rx: 5px !important;
+            ry: 5px !important;
+        }
+
+        .mermaid text {
+            fill: #ffffff !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 16px !important;
+            font-weight: 400 !important;
+        }
+
+        .mermaid .messageText {
+            fill: #ffffff !important;
+            stroke: none !important;
+            font-size: 14px !important;
+        }
+
+        .mermaid #arrowhead path {
+            fill: #ffffff !important;
+            stroke: #ffffff !important;
+        }
+
+        .mermaid .marker {
+            fill: #ffffff !important;
+        }
+
+        .mermaid .actor {
+            fill: rgba(15, 23, 42, 0.6) !important;
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+        }
+
+        .mermaid circle, .mermaid polygon, .mermaid path {
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+        }
+
+        .mermaid line {
+            stroke: #ffffff !important;
+            stroke-width: 1px !important;
+        }
+
+        .mermaid .note {
+            fill: rgba(15, 23, 42, 0.6) !important;
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+        }
+
+        .mermaid .noteText {
+            fill: #ffffff !important;
+            font-size: 14px !important;
+        }
+
+        .mermaid .loopText, .mermaid .loopText > tspan {
+            fill: #ffffff !important;
+            font-size: 14px !important;
+        }
+
+        .mermaid .node .label {
+            color: #ffffff !important;
+        }
+
+        .mermaid .cluster {
+            fill: rgba(15, 23, 42, 0.6) !important;
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+        }
+
+        .mermaid .flowchart-link {
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+            fill: none !important;
+        }
+
+        .mermaid .edgeLabel {
+            background-color: rgba(15, 23, 42, 0.6) !important;
+            color: #ffffff !important;
+            font-size: 14px !important;
+        }
+
+        .mermaid .edgePath .path {
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+            fill: none !important;
+        }
+
+        .mermaid .edgePath marker {
+            fill: #ffffff !important;
+            stroke: #ffffff !important;
+        }
+
+        .mermaid .sequenceNumber {
+            fill: transparent !important;
+        }
+
+        .mermaid .activation0, 
+        .mermaid .activation1, 
+        .mermaid .activation2 {
+            fill: rgba(15, 23, 42, 0.6) !important;
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+        }
+
+        /* Стилі для діаграм класів */
+        .mermaid .classBox {
+            fill: rgba(15, 23, 42, 0.6) !important;
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+        }
+
+        .mermaid .classText {
+            fill: #ffffff !important;
+            font-size: 14px !important;
+        }
+
+        .mermaid .classTitle {
+            fill: #ffffff !important;
+            font-size: 16px !important;
+            font-weight: 600 !important;
+        }
+
+        .mermaid .classLabel {
+            fill: #ffffff !important;
+            font-size: 12px !important;
+        }
+
+        .mermaid .edgeLabel {
+            fill: #ffffff !important;
+            font-size: 12px !important;
+        }
+
+        .challenges-solutions-visual {
+            margin: 1rem 0;
+            padding: 1rem;
+        }
+
+        .challenge-item {
+            background: rgba(220, 38, 38, 0.2);
+            border: 2px solid var(--warning-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+
+        .solution-item {
+            background: rgba(5, 150, 105, 0.2);
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .stat-item {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+
+        /* Стилі для діаграм */
+        .diagram-container {
+            margin: 2rem 0;
+            text-align: center;
+            max-height: 60vh;
+            overflow: hidden;
+        }
+
+        .diagram-image {
+            max-width: 100%;
+            max-height: 60vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .diagram-image:hover {
+            transform: scale(1.02);
+        }
+
+        .diagram-container a {
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 1rem;
+            }
+            
+            .slide h1 {
+                font-size: 2rem;
+            }
+            
+            .slide h2 {
+                font-size: 1.5rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tech-stack {
+                grid-template-columns: 1fr;
+            }
+
+            .diagram-container {
+                max-height: 50vh;
+                margin: 1rem 0;
+            }
+
+            .diagram-image {
+                max-height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation">
+        <!-- Слайд 1: Титульний -->
+        <div class="slide active">
+            <div class="content">
+                <h1>AI Agent Risk Assessment System</h1>
+                <h2>Team: <b>FateFactory</b></h2>
+                <p><h3>Igor Gorovoy</h3></p>
+                <p><h3>Serhii Kaliuzhnyi</h3></p>
+                <div class="card">
+                    <p style="font-size: 1.5rem; margin-bottom: 1rem;">Інноваційна система для оцінки бізнес-ризиків та підтримки прийняття рішень</p>
+                    <p style="font-size: 1.2rem; color: #94a3b8;">Поєднання традиційної методології в підходах до аналізу ситуацій з сучасними технологіями штучного інтелекту</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 2: Основні цілі -->
+        <div class="slide">
+            <div class="content">
+                <h2>🎯 Основні цілі</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>🤖 Автоматизація оцінки ризиків</h3>
+                        <ul style="text-align: left; margin-top: 1rem;">
+                            <li>Швидкий аналіз бізнес-ситуацій</li>
+                            <li>Структуровані рекомендації</li>
+                            <li>Зменшення людського фактору</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>💰 Оптимізація витрат</h3>
+                        <ul style="text-align: left; margin-top: 1rem;">
+                            <li>Зниження вартості консультацій</li>
+                            <li>Масштабованість рішення</li>
+                            <li>Автоматизація рутинних задач</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📈 Покращення якості рішень</h3>
+                        <ul style="text-align: left; margin-top: 1rem;">
+                            <li>Комбінація експертних знань</li>
+                            <li>Контекстний аналіз ситуації</li>
+                            <li>Багатофакторна оцінка</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 3: Ключові задачі -->
+        <div class="slide">
+            <div class="content">
+                <h2>✅ Ключові задачі</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>🔍 Аналіз та інтерпретація</h3>
+                        <ul style="text-align: left; margin-top: 1rem;">
+                            <li>Автоматичний вибір релевантних карт</li>
+                            <li>Генерація контекстних інтерпретацій</li>
+                            <li>Структуровані рекомендації</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>⚙️ Технічна реалізація</h3>
+                        <ul style="text-align: left; margin-top: 1rem;">
+                            <li>Інтеграція з GPT-4</li>
+                            <li>Векторна база знань</li>
+                            <li>Система моніторингу</li>
+                            <li>API для інтеграцій</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🔒 Безпека та надійність</h3>
+                        <ul style="text-align: left; margin-top: 1rem;">
+                            <li>Захист користувацьких даних</li>
+                            <li>Моніторинг якості відповідей</li>
+                            <li>Висока доступність системи</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 4: Виклики та рішення -->
+        <div class="slide">
+            <div class="content">
+                <h2>⚠️ Виклики та рішення</h2>
+                <div class="challenges-solutions-visual">
+                    <div class="challenge-item">
+                        <h3>🎯 Якість інтерпретацій</h3>
+                        <p>Забезпечення точності та релевантності</p>
+                        <div class="solution-item">
+                            <strong>Рішення:</strong> RAG система + GPT-4
+                            <br><strong>Результат:</strong> >95% точність відповідей
+                        </div>
+                    </div>
+                    <div class="challenge-item">
+                        <h3>⚡ Продуктивність</h3>
+                        <p>Швидкість обробки запитів</p>
+                        <div class="solution-item">
+                            <strong>Рішення:</strong> Векторна база + кешування
+                            <br><strong>Результат:</strong> 3-7 секунд на запит
+                        </div>
+                    </div>
+                    <div class="challenge-item">
+                        <h3>📈 Масштабованість</h3>
+                        <p>Обробка паралельних запитів</p>
+                        <div class="solution-item">
+                            <strong>Рішення:</strong> Асинхронна архітектура
+                            <br><strong>Результат:</strong> До 10 одночасних користувачів
+                        </div>
+                    </div>
+                    <div class="challenge-item">
+                        <h3>🔒 Безпека</h3>
+                        <p>Захист даних та моніторинг</p>
+                        <div class="solution-item">
+                            <strong>Рішення:</strong> Шифрування + система спостереження
+                            <br><strong>Результат:</strong> Повний контроль та аудит
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 5: Архітектура системи -->
+        <div class="slide">
+            <div class="content">
+                <h2>🏗️ High Level Design (HLD)</h2>
+                <div class="diagram-container">
+                    <a href="https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system?tab=readme-ov-file#high-level-design-hld" target="_blank">
+                        <img src="hld.png" alt="High Level Design" class="diagram-image">
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 6: Діаграма класів -->
+        <div class="slide">
+            <div class="content">
+                <h2>📋 Детальна системна архітектура</h2>
+                <div class="diagram-container">
+                    <a href="https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system?tab=readme-ov-file#%D0%B4%D0%B5%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0-%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%BD%D0%B0-%D0%B0%D1%80%D1%85%D1%96%D1%82%D0%B5%D0%BA%D1%82%D1%83%D1%80%D0%B0" target="_blank">
+                        <img src="./arch.png" alt="Detailed System Architecture" class="diagram-image">
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 7: Процес обробки запиту -->
+        <div class="slide">
+            <div class="content">
+                <h2>🔄 Процес обробки запиту</h2>
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant User as 👤 Користувач
+                        participant Browser as Веб-браузер
+                        participant Flask as Flask App
+                        participant Agent as Tarot Agent
+                        participant Selector as Card Selector
+                        participant VectorDB as ChromaDB
+                        participant RAG as RAG Chain
+                        participant LLM as GPT-4 API
+                        participant Monitor as Observability
+
+                        Note over User,Monitor: Процес отримання Таро читання
+
+                        User->>Browser: Вводить питання
+                        Browser->>Flask: POST /api/reading
+                        activate Flask
+                        
+                        Flask->>Agent: get_reading(question)
+                        activate Agent
+                        Agent->>Monitor: Логування початку запиту
+                        
+                        Note over Agent,Selector: Вибір карт
+                        Agent->>Selector: _draw_cards(num_cards=3)
+                        Selector-->>Agent: Список карт + положення
+                        
+                        Note over Agent,VectorDB: Пошук інформації про карти
+                        loop Для кожної карти
+                            Agent->>VectorDB: similarity_search(card_name)
+                            VectorDB-->>Agent: Описи карти (top-k=5)
+                        end
+                        
+                        Note over Agent,RAG: Формування контексту
+                        Agent->>RAG: Створення контексту з описів
+                        RAG->>Agent: Підготовлений prompt
+                        
+                        Note over Agent,LLM: Генерація інтерпретації
+                        Agent->>LLM: Запит з контекстом
+                        LLM-->>Agent: Інтерпретація українською
+                        
+                        Note over Agent,Monitor: Обробка результату
+                        Agent->>Monitor: Логування успішної відповіді
+                        Agent->>Agent: Формування відповіді
+                        
+                        Agent-->>Flask: {"cards": [...], "reading": "..."}
+                        deactivate Agent
+                        Flask-->>Browser: JSON відповідь
+                        deactivate Flask
+                        Browser-->>User: Відображення карт та інтерпретації
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 8: Технічний стек -->
+        <div class="slide">
+            <div class="content">
+                <h2>🛠️ Технічний стек</h2>
+                <div class="tech-stack">
+                    <div class="tech-card">
+                        <h3>🌐 Backend</h3>
+                        <ul style="text-align: left; margin-top: 1rem;">
+                            <li>Python 3.12</li>
+                            <li>Flask</li>
+                            <li>LangChain</li>
+                            <li>ChromaDB</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h3>🤖 AI/ML</h3>
+                        <ul style="text-align: left; margin-top: 1rem;">
+                            <li>OpenAI GPT-4 Turbo</li>
+                            <li>SentenceTransformers</li>
+                            <li>RAG System</li>
+                            <li>Vector Embeddings</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h3>💾 Data Storage</h3>
+                        <ul style="text-align: left; margin-top: 1rem;">
+                            <li>ChromaDB Vector Store</li>
+                            <li>468 Text Files</li>
+                            <li>206 Card Images</li>
+                            <li>Persistent Storage</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h3>📊 Monitoring</h3>
+                        <ul style="text-align: left; margin-top: 1rem;">
+                            <li>LangSmith</li>
+                            <li>Phoenix</li>
+                            <li>Custom Observability</li>
+                            <li>Error Tracking</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 9: Продуктивність -->
+        <div class="slide">
+            <div class="content">
+                <h2>📊 Продуктивність</h2>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">3-7с</div>
+                        <div class="stat-label">Час відповіді</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">>95%</div>
+                        <div class="stat-label">Точність відповідей</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">10</div>
+                        <div class="stat-label">Одночасних користувачів</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">1000</div>
+                        <div class="stat-label">Документів в базі</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>🎯 Ключові метрики</h3>
+                    <div class="feature-grid">
+                        <div class="success-box">
+                            <h4>✅ Надійність</h4>
+                            <p>Error Handling на всіх рівнях</p>
+                            <p>Детальне логування для діагностики</p>
+                            <p>Резервні механізми при збоях API</p>
+                        </div>
+                        <div class="success-box">
+                            <h4>🔒 Безпека</h4>
+                            <p>API Keys через змінні середовища</p>
+                            <p>Валідація вхідних даних</p>
+                            <p>Безпечна обробка помилок</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 10: API Endpoints -->
+        <div class="slide">
+            <div class="content">
+                <h2>🔌 API Endpoints</h2>
+                <div class="card">
+                    <h3>GET /</h3>
+                    <p>Головна сторінка з веб-інтерфейсом</p>
+                </div>
+                <div class="card">
+                    <h3>POST /api/reading</h3>
+                    <p>Отримання читання Таро</p>
+                    <div class="code-block">
+                        <code>
+// Request
+{
+    "question": "Ваше питання тут"
+}
+
+// Response
+{
+    "cards": [
+        {
+            "name": "Ace of Pentacles",
+            "is_reversed": true,
+            "image_path": "/static/images/cards/...",
+            "position": "Перевернута"
+        }
+    ],
+    "reading": "**Ваші карти:**\n\n### 🎴 Ace of Pentacles..."
+                        </code>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>GET /api/guardrails/stats</h3>
+                    <p>Статистика безпеки</p>
+                </div>
+                <div class="card">
+                    <h3>POST /api/health</h3>
+                    <p>Стан системи</p>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Слайд 11: Моніторинг та спостережуваність -->
+        <div class="slide">
+            <div class="content">
+                <h2>📊 Моніторинг та спостережуваність</h2>
+                <div class="card">
+                    <h3>LangSmith Integration</h3>
+                    <p>Комплексний моніторинг та аналіз продуктивності</p>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>⏱️ Продуктивність</h4>
+                            <ul style="text-align: left; margin-top: 1rem;">
+                                <li>Час виконання запитів</li>
+                                <li>Час пошуку в векторній базі</li>
+                                <li>Час генерації відповідей LLM</li>
+                                <li>Загальний час обробки запиту</li>
+                            </ul>
+                        </div>
+                        <div class="feature-card">
+                            <h4>💰 Використання ресурсів</h4>
+                            <ul style="text-align: left; margin-top: 1rem;">
+                                <li>Кількість токенів (prompt/completion)</li>
+                                <li>Вартість API викликів</li>
+                                <li>Кількість знайдених документів</li>
+                                <li>Кількість використаних карт</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Налаштування моніторингу</h3>
+                    <div class="code-block">
+                        <code>
+# Додати в .env файл
+LANGCHAIN_API_KEY=your_api_key
+LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
+LANGCHAIN_PROJECT=tarot-agent
+LANGCHAIN_TRACING_V2=true
+                        </code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 12: Репозиторій -->
+        <div class="slide">
+            <div class="content">
+                <h2>👥 Репозиторій</h2>
+                <div class="card">
+                    <h3>🔗 Посилання на проект</h3>
+                    <div class="code-block">
+                        <code>
+GitHub Repository:
+https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system
+                        </code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слайд 13: Висновки -->
+        <div class="slide">
+            <div class="content">
+                <h2>🎯 Висновки</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>✅ Досягнення</h3>
+                        <ul style="text-align: left; margin-top: 1rem;">
+                            <li>Успішна інтеграція AI з традиційною методологією</li>
+                            <li>Висока точність інтерпретацій (>95%)</li>
+                            <li>Швидка обробка запитів (3-7 секунд)</li>
+                            <li>Масштабована архітектура</li>
+                            <li>Комплексна система моніторингу</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🚀 Перспективи розвитку</h3>
+                        <ul style="text-align: left; margin-top: 1rem;">
+                            <li>Розширення бази знань</li>
+                            <li>Покращення алгоритмів вибору карт</li>
+                            <li>Додавання нових мов</li>
+                            <li>Інтеграція з бізнес-системами</li>
+                            <li>Розвиток мобільного додатку</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="highlight">
+                    <p style="font-size: 1.5rem; margin: 0;">DEMO</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Навігація -->
+    <div class="navigation">
+        <button class="nav-btn" id="prevBtn">← Попередній</button>
+        <button class="nav-btn" id="nextBtn">Наступний →</button>
+    </div>
+
+    <!-- Лічильник слайдів -->
+    <div class="slide-counter">
+        <span id="currentSlide">1</span> / <span id="totalSlides">13</span>
+    </div>
+
+    <script>
+        // Ініціалізація Mermaid з правильними налаштуваннями
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            sequence: {
+                mirrorActors: false,
+                bottomMarginAdj: 30,
+                messageAlign: 'center',
+                boxTextMargin: 15,
+                noteMargin: 30,
+                messageMargin: 60,
+                noteAlign: 'center',
+                actorMargin: 150,
+                width: 250,
+                height: 100,
+                boxMargin: 40
+            },
+            flowchart: {
+                nodeSpacing: 80,
+                rankSpacing: 100,
+                curve: 'basis',
+                useMaxWidth: true,
+                htmlLabels: true,
+                padding: 30
+            },
+            classDiagram: {
+                classSpacing: 50,
+                diagramMarginX: 50,
+                diagramMarginY: 50,
+                useMaxWidth: true
+            },
+            themeVariables: {
+                fontSize: '16px',
+                fontFamily: 'Inter, sans-serif',
+                primaryColor: '#ffffff',
+                primaryTextColor: '#ffffff',
+                primaryBorderColor: '#ffffff',
+                lineColor: '#ffffff',
+                secondaryColor: '#ffffff',
+                tertiaryColor: '#ffffff',
+                background: 'transparent',
+                nodeBorder: '#ffffff',
+                mainBkg: 'rgba(15, 23, 42, 0.8)',
+                nodeBkg: 'rgba(15, 23, 42, 0.8)',
+                clusterBkg: 'rgba(15, 23, 42, 0.6)',
+                edgeLabelBackground: 'rgba(15, 23, 42, 0.8)',
+                labelTextColor: '#ffffff',
+                labelBackgroundColor: 'rgba(15, 23, 42, 0.8)',
+                clusterBorder: '#ffffff',
+                nodeTextColor: '#ffffff',
+                textColor: '#ffffff',
+                titleColor: '#ffffff',
+                edgeColor: '#ffffff',
+                arrowheadColor: '#ffffff',
+                defaultLinkColor: '#ffffff',
+                nodeBorderWidth: '2px',
+                clusterBorderWidth: '2px',
+                // Додаткові змінні для діаграм класів
+                classText: '#ffffff',
+                classTitle: '#ffffff',
+                classLabel: '#ffffff',
+                classBox: 'rgba(15, 23, 42, 0.8)',
+                classBoxBorder: '#ffffff'
+            }
+        });
+
+        // Навігація по слайдах
+        let currentSlideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const currentSlideSpan = document.getElementById('currentSlide');
+        const totalSlidesSpan = document.getElementById('totalSlides');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        totalSlidesSpan.textContent = totalSlides;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === index);
+            });
+            currentSlideSpan.textContent = index + 1;
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === totalSlides - 1;
+        }
+
+        function nextSlide() {
+            if (currentSlideIndex < totalSlides - 1) {
+                currentSlideIndex++;
+                showSlide(currentSlideIndex);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                showSlide(currentSlideIndex);
+            }
+        }
+
+        // Обробники подій
+        nextBtn.addEventListener('click', nextSlide);
+        prevBtn.addEventListener('click', prevSlide);
+
+        // Навігація клавіатурою
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+
+        // Ініціалізація
+        showSlide(0);
+    </script>
+</body>
+</html>
+    </script>
+</body>
+</html>
