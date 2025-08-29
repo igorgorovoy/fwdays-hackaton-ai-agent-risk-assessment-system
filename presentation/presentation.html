@@ -5,348 +5,686 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Система оцінки ризиків - Tarot AI Agent</title>
     
-    <!-- Reveal.js CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/theme/white.min.css">
-    
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Mermaid -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
     
     <style>
         :root {
-            --primary-color: #6366f1;
-            --primary-light: #a5b4fc;
-            --primary-dark: #4338ca;
-            --secondary-color: #10b981;
-            --accent-color: #f59e0b;
-            --danger-color: #ef4444;
-            --text-primary: #1f2937;
-            --text-secondary: #6b7280;
-            --bg-primary: #ffffff;
-            --bg-secondary: #f9fafb;
-            --bg-accent: #f3f4f6;
-            --border-color: #e5e7eb;
+            /* 4 основних кольори */
+            --primary: #6366f1;      /* Основний колір для акцентів */
+            --secondary: #0f172a;    /* Темний фон */
+            --text: #f8fafc;         /* Світлий текст */
+            --muted: #94a3b8;        /* Приглушений текст */
+            
+            /* Похідні кольори */
+            --bg-overlay: rgba(15, 23, 42, 0.9);  /* Напівпрозорий фон */
+            --bg-card: rgba(15, 23, 42, 0.8);     /* Фон для карток */
+            --border: rgba(248, 250, 252, 0.1);   /* Рамки */
+            
+            /* Радіуси та тіні */
+            --radius: 12px;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            --border-radius: 12px;
-            --border-radius-lg: 16px;
         }
 
-        .reveal {
-            font-family: 'Montserrat', sans-serif;
-            color: var(--text-primary);
-            background: #f8fafc;
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--secondary);
+            background-image: linear-gradient(rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.95)), url('evgeni-tcherkasski-PP5hq8vZH8o-unsplash.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            line-height: 1.6;
         }
 
-        .reveal .slides section {
-            text-align: left;
-            padding: 1.5rem;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            margin: 0.5rem;
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            max-height: 90vh;
-            overflow-y: auto;
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: transparent;
         }
-
-        .reveal h1, .reveal h2, .reveal h3 {
-            font-family: 'Playfair Display', serif;
-            text-align: center;
-            color: var(--text-primary);
+        
+        .presentation::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 70%),
+                radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* Базові стилі тексту */
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text);
             font-weight: 600;
             line-height: 1.2;
-            letter-spacing: -0.02em;
-        }
-
-        .reveal h1 {
-            font-size: 3.2rem;
-            color: var(--primary-color);
-            font-weight: 700;
-        }
-
-        .reveal h2 {
-            font-size: 2.4rem;
             margin-bottom: 1rem;
-            border-bottom: 3px solid var(--primary-color);
-            padding-bottom: 0.5rem;
-            font-weight: 600;
+        }
+        
+        p {
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+        
+        strong {
+            color: var(--text);
+        }
+        
+        .slides {
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .slide {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            padding: 6rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease-in-out;
+            overflow-y: auto;
+            background: var(--secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+            box-sizing: border-box;
         }
 
-        .reveal h3 {
-            font-size: 2rem;
-            color: var(--primary-dark);
-            font-weight: 500;
+        .slide > section {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
         }
 
-        .reveal .title-slide {
-            display: flex !important;
-            flex-direction: column !important;
-            justify-content: center !important;
-            align-items: center !important;
-            text-align: center !important;
-            height: 100vh !important;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-            color: white !important;
-            padding: 2rem !important;
-            margin: 0 !important;
-            max-height: none !important;
-            overflow: visible !important;
-            border: none !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
+        .slide > h1, .slide > h2 {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
         }
 
-        .reveal .title-slide h1 {
-            font-family: 'Playfair Display', serif !important;
-            font-size: 4rem !important;
-            margin-bottom: 1.5rem !important;
-            color: white !important;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2) !important;
-            font-weight: 700 !important;
-            letter-spacing: -0.03em !important;
+        .grid-2, .grid-3, .grid-4 {
+            display: grid;
+            gap: 2rem;
+            margin: 2rem 0;
         }
 
-        .reveal .title-slide h2 {
-            font-family: 'Montserrat', sans-serif !important;
-            font-size: 2rem !important;
-            border-bottom: none !important;
-            font-weight: 500 !important;
-            margin-bottom: 1rem !important;
-            color: white !important;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important;
-            letter-spacing: -0.01em !important;
+        .grid-2 {
+            grid-template-columns: repeat(2, 1fr);
         }
 
-        .reveal .title-slide p {
-            font-family: 'Montserrat', sans-serif !important;
-            margin: 0.5rem 0 !important;
-            color: white !important;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important;
-            font-weight: 400 !important;
-            letter-spacing: 0.01em !important;
+        .grid-3 {
+            grid-template-columns: repeat(3, 1fr);
         }
 
-        .reveal .title-slide .subtitle {
-            font-family: 'Playfair Display', serif !important;
-            font-style: italic !important;
-            font-size: 1.4rem !important;
-            margin: 1.5rem 0 !important;
-            color: rgba(255, 255, 255, 0.9) !important;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important;
-            font-weight: 500 !important;
-            letter-spacing: 0 !important;
+        .grid-4 {
+            grid-template-columns: repeat(4, 1fr);
         }
+
+        @media (max-width: 1200px) {
+            .slide {
+                padding: 4rem 2rem;
+            }
+            
+            .grid-2, .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+        
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 100;
+        }
+        
+        .slide > * {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .slide h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .slide h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .slide .subtitle {
+            font-size: 1.5rem;
+            color: var(--muted);
+            max-width: 800px;
+            margin: 1rem auto;
+        }
+        
+        .navigation {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--bg-card);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            pointer-events: all;
+        }
+        
+        .nav-button {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: var(--radius);
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-button:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--text);
+        }
+        
+        #slideCounter {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        
+
 
 
 
         /* Cards and Grid Layouts */
-        .card {
-            background: #ffffff;
-            border-radius: var(--border-radius);
-            padding: 1rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(99, 102, 241, 0.2);
+        .card, .feature-card, .tech-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 2rem;
+            border: 1px solid var(--border);
+            position: relative;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
-        .card:hover {
-            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.2);
-            transform: translateY(-4px);
-            border-color: rgba(99, 102, 241, 0.4);
+        .card:hover, .feature-card:hover, .tech-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .card h4, .feature-card h4, .tech-card h4 {
+            color: var(--text);
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        .card p, .card li, 
+        .feature-card p, .feature-card li,
+        .tech-card p, .tech-card li {
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .card ul, .feature-card ul, .tech-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
 
         .grid-2 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1rem;
-            margin: 1rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
         }
 
         .grid-3 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
-            margin: 1rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
         }
 
         .grid-4 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 0.8rem;
-            margin: 1rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 3rem 0;
         }
 
         /* Feature Cards */
         .feature-card {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            color: white;
-            border-radius: var(--border-radius-lg);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 2rem;
-            text-align: center;
-            box-shadow: 0 6px 25px rgba(99, 102, 241, 0.3);
-            transition: all 0.4s ease;
+            text-align: left;
+            transition: all 0.3s ease;
             position: relative;
-            overflow: hidden;
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 60%);
-            animation: gentle-float 8s ease-in-out infinite;
-            pointer-events: none;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .feature-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 15px 45px rgba(99, 102, 241, 0.4);
+            transform: translateY(-2px);
+            border-color: var(--primary);
         }
 
         .feature-card h4 {
             font-size: 1.3rem;
             margin-bottom: 1rem;
-            color: white;
-            position: relative;
-            z-index: 1;
+            color: var(--text);
+            font-weight: 600;
         }
 
         .feature-card p, .feature-card ul {
-            color: rgba(255, 255, 255, 0.95);
-            position: relative;
-            z-index: 1;
-        }
-
-        @keyframes gentle-float {
-            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); opacity: 0.6; }
-            50% { transform: translate(-50%, -50%) rotate(180deg); opacity: 0.8; }
+            color: var(--muted);
+            line-height: 1.6;
         }
 
         /* Tech Stack Cards */
         .tech-card {
-            background: rgba(248, 250, 252, 0.9);
-            border: 2px solid rgba(99, 102, 241, 0.15);
+            background: rgba(15, 15, 35, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: var(--border-radius);
-            padding: 1.5rem;
-            text-align: center;
-            transition: all 0.3s ease;
+            padding: 2rem;
+            text-align: left;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 3;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
         }
 
         .tech-card h4 {
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .tech-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tech-card li {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-left: 1rem;
+        }
+
+        .tech-card li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
             color: var(--primary-color);
-            margin-bottom: 1rem;
+            font-weight: 600;
         }
 
         .tech-card:hover {
-            border-color: var(--primary-color);
-            background: rgba(255, 255, 255, 0.95);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.2);
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
 
         /* Statistics */
         .stat-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 0.8rem;
-            margin: 1rem 0;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin: 3rem 0;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .stat-item {
-            background: linear-gradient(135deg, var(--secondary-color), #34d399);
-            color: white;
-            padding: 1rem;
-            border-radius: var(--border-radius);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            border-radius: var(--radius);
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            justify-content: center;
         }
 
         .stat-number {
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: 700;
-            display: block;
-            margin-bottom: 0.5rem;
+            color: var(--primary);
+            line-height: 1;
         }
 
         .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
+            font-size: 1rem;
+            color: var(--muted);
+            max-width: 150px;
+        }
+
+        @media (max-width: 768px) {
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* Lists */
         .feature-list {
             list-style: none;
             padding: 0;
+            margin: 2rem 0;
         }
 
         .feature-list li {
-            background: var(--bg-secondary);
-            margin: 0.5rem 0;
-            padding: 1rem;
-            border-left: 4px solid var(--secondary-color);
-            border-radius: 0 var(--border-radius) var(--border-radius) 0;
-            transition: all 0.3s ease;
+            background: rgba(15, 15, 35, 0.6);
+            margin: 1rem 0;
+            padding: 1.5rem;
+            border-left: 2px solid var(--secondary-color);
+            border-radius: var(--border-radius);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            position: relative;
+            z-index: 3;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
         }
 
         .feature-list li:hover {
-            background: var(--bg-primary);
             border-left-color: var(--primary-color);
-            transform: translateX(8px);
+            border-color: rgba(59, 130, 246, 0.2);
+            transform: translateX(4px);
+        }
+
+        /* General text styles */
+        p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        ul:not(.feature-list) {
+            color: var(--text-secondary);
+        }
+
+        ul:not(.feature-list) li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
         }
 
         /* Highlight Boxes */
+        .highlight, .success-box, .warning-box {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid var(--border);
+            position: relative;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
         .highlight {
-            background: rgba(219, 234, 254, 0.6);
-            border-left: 4px solid var(--primary-color);
-            border-radius: var(--border-radius);
-            padding: 1rem;
-            margin: 1rem 0;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+            border-left: 3px solid var(--primary);
         }
 
         .success-box {
-            background: rgba(220, 252, 231, 0.6);
-            border-left: 4px solid var(--secondary-color);
-            border-radius: var(--border-radius);
-            padding: 1rem;
-            margin: 1rem 0;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+            border-left: 3px solid var(--text);
         }
 
         .warning-box {
-            background: rgba(254, 243, 199, 0.6);
-            border-left: 4px solid var(--accent-color);
-            border-radius: var(--border-radius);
-            padding: 1rem;
-            margin: 1rem 0;
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
+            border-left: 3px solid var(--muted);
+        }
+
+        .highlight p,
+        .success-box p,
+        .warning-box p,
+        .highlight ul,
+        .success-box ul,
+        .warning-box ul,
+        .highlight li,
+        .success-box li,
+        .warning-box li {
+            color: var(--muted);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .highlight strong,
+        .success-box strong,
+        .warning-box strong {
+            color: var(--text);
+            display: block;
+            margin-bottom: 0.5rem;
         }
 
         /* Code blocks */
-        .code-block {
-            background: var(--text-primary);
-            color: #e5e7eb;
+        pre.code-block {
+            background: var(--secondary);
+            color: var(--text);
             padding: 1.5rem;
-            border-radius: var(--border-radius);
+            border-radius: var(--radius);
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.9rem;
             overflow-x: auto;
-            margin: 1rem 0;
+            margin: 0;
+            border: 1px solid var(--border);
+            position: relative;
+            white-space: pre;
+            word-wrap: normal;
+            tab-size: 4;
+            -moz-tab-size: 4;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .code-block code {
+            display: block;
+            color: var(--text);
+            line-height: 1.6;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .card pre.code-block {
+            margin-top: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--gradient-3);
         }
 
         /* Mermaid diagrams */
+        .slide {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
         .mermaid {
             text-align: center;
-            margin: 1rem 0;
-            padding: 0.8rem;
-            background: rgba(249, 250, 251, 0.8);
-            border-radius: var(--border-radius);
+            margin: 2rem auto;
+            padding: 2rem;
+            background: transparent;
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+        }
+
+        .mermaid svg {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 400px;
+        }
+
+        .mermaid rect {
+            fill: rgba(15, 23, 42, 0.6) !important;
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+            rx: 5px !important;
+            ry: 5px !important;
+        }
+
+        .mermaid text {
+            fill: #ffffff !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 16px !important;
+            font-weight: 400 !important;
+        }
+
+        .mermaid .messageText {
+            fill: #ffffff !important;
+            stroke: none !important;
+            font-size: 14px !important;
+        }
+
+        .mermaid #arrowhead path {
+            fill: #ffffff !important;
+            stroke: #ffffff !important;
+        }
+
+        .mermaid .marker {
+            fill: #ffffff !important;
+        }
+
+        .mermaid .actor {
+            fill: rgba(15, 23, 42, 0.6) !important;
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+        }
+
+        .mermaid circle, .mermaid polygon, .mermaid path {
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+        }
+
+        .mermaid line {
+            stroke: #ffffff !important;
+            stroke-width: 1px !important;
+        }
+
+        .mermaid .note {
+            fill: rgba(15, 23, 42, 0.6) !important;
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+        }
+
+        .mermaid .noteText {
+            fill: #ffffff !important;
+            font-size: 14px !important;
+        }
+
+        .mermaid .loopText, .mermaid .loopText > tspan {
+            fill: #ffffff !important;
+            font-size: 14px !important;
+        }
+
+        .mermaid .node .label {
+            color: #ffffff !important;
+        }
+
+        .mermaid .cluster {
+            fill: rgba(15, 23, 42, 0.6) !important;
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+        }
+
+        .mermaid .flowchart-link {
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+            fill: none !important;
+        }
+
+        .mermaid .edgeLabel {
+            background-color: rgba(15, 23, 42, 0.6) !important;
+            color: #ffffff !important;
+            font-size: 14px !important;
+        }
+
+        .mermaid .edgePath .path {
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
+            fill: none !important;
+        }
+
+        .mermaid .edgePath marker {
+            fill: #ffffff !important;
+            stroke: #ffffff !important;
+        }
+
+        .mermaid .sequenceNumber {
+            fill: transparent !important;
+        }
+
+        .mermaid .activation0, 
+        .mermaid .activation1, 
+        .mermaid .activation2 {
+            fill: rgba(15, 23, 42, 0.6) !important;
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
         }
 
         /* Challenges-Solutions Visual */
@@ -358,43 +696,56 @@
             box-shadow: var(--shadow);
         }
 
+        .challenges-solutions-visual {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
         .challenge-solution-grid {
             display: grid;
             grid-template-columns: 1fr auto 1fr;
-            gap: 0.8rem;
+            gap: 1.5rem;
             align-items: center;
-            max-width: 700px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
         .challenge-item {
-            background: linear-gradient(135deg, #fecaca, #fca5a5);
-            color: #7f1d1d;
-            padding: 1rem;
-            border-radius: var(--border-radius);
+            background: rgba(239, 68, 68, 0.1);
+            padding: 1.5rem;
+            border-radius: var(--radius);
             text-align: center;
-            box-shadow: 0 3px 12px rgba(220, 38, 38, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.2);
             transition: all 0.3s ease;
         }
 
-        .challenge-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
+        .challenge-item h4 {
+            color: var(--text);
+            margin: 0.5rem 0;
+            font-size: 1.1rem;
         }
 
         .solution-item {
-            background: linear-gradient(135deg, #bbf7d0, #86efac);
-            color: #14532d;
-            padding: 1rem;
-            border-radius: var(--border-radius);
+            background: rgba(34, 197, 94, 0.1);
+            padding: 1.5rem;
+            border-radius: var(--radius);
             text-align: center;
-            box-shadow: 0 3px 12px rgba(5, 150, 105, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.2);
             transition: all 0.3s ease;
         }
 
-        .solution-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3);
+        .solution-item h4 {
+            color: var(--text);
+            margin: 0.5rem 0;
+            font-size: 1.1rem;
+        }
+
+        .arrow {
+            color: var(--text);
+            font-size: 1.5rem;
+            opacity: 0.5;
         }
 
         .challenge-icon, .solution-icon {
@@ -427,7 +778,43 @@
         /* Responsive Design */
         @media (max-width: 768px) {
             .reveal .slides section {
-                padding: 1rem;
+                padding: 2rem;
+            }
+
+            .reveal h1 {
+                font-size: 3rem;
+            }
+
+            .reveal h2 {
+                font-size: 2rem;
+            }
+
+            .reveal .title-slide h1 {
+                font-size: 3.5rem !important;
+            }
+
+            .grid-2, .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .feature-card, .tech-card, .card {
+                padding: 1.5rem;
+            }
+
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .highlight, .success-box, .warning-box {
+                padding: 1.5rem;
+                margin: 1.5rem 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .reveal .slides section {
+                padding: 1.5rem;
             }
 
             .reveal h1 {
@@ -435,53 +822,11 @@
             }
 
             .reveal h2 {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
 
-            .grid-2, .grid-3, .grid-4 {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .feature-card, .tech-card {
-                padding: 1rem;
-            }
-
-            .stat-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .challenge-solution-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-                text-align: center;
-            }
-
-            .arrow {
-                transform: rotate(90deg);
-                margin: 0.5rem 0;
-            }
-
-            .challenges-solutions-visual {
-                padding: 1rem;
-            }
-
-            .challenge-item, .solution-item {
-                padding: 1rem;
-            }
-
-            .challenge-item h4, .solution-item h4 {
-                font-size: 0.9rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .reveal h1 {
-                font-size: 2rem;
-            }
-
-            .reveal h2 {
-                font-size: 1.5rem;
+            .reveal .title-slide h1 {
+                font-size: 3rem !important;
             }
 
             .stat-number {
@@ -491,30 +836,74 @@
             .stat-grid {
                 grid-template-columns: 1fr;
             }
+
+            .feature-card, .tech-card, .card {
+                padding: 1rem;
+            }
         }
 
         /* Progress bar */
         .reveal .progress {
-            background: rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.1);
+            height: 2px;
         }
 
         .reveal .progress span {
-            background: var(--primary-color);
+            background: var(--gradient-1);
+            border-radius: 2px;
         }
 
         /* Navigation */
         .reveal .controls {
-            color: var(--primary-color);
+            color: var(--text-secondary);
+        }
+
+        .reveal .controls button {
+            color: var(--text-secondary);
+            background: rgba(26, 26, 46, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .reveal .controls button:hover {
+            color: var(--text-primary);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Ensure text has proper contrast */
+        .card h4, .card h3, .card h2 {
+            color: #ffffff !important;
+        }
+
+        .card p, .card li, .card ul {
+            color: #d1d5db !important;
+        }
+
+        .feature-card h4, .tech-card h4 {
+            color: #ffffff !important;
+        }
+
+        .feature-card p, .feature-card li, 
+        .tech-card p, .tech-card li {
+            color: #d1d5db !important;
         }
     </style>
 </head>
 
 <body>
-    <div class="reveal">
+    <div class="presentation">
         <div class="slides">
+            <!-- Навігація -->
+            <div class="navigation">
+                <button id="prevSlide" class="nav-button">←</button>
+                <span id="slideCounter">1 / 14</span>
+                <button id="nextSlide" class="nav-button">→</button>
+            </div>
             
             <!-- Титульний слайд -->
-            <section class="title-slide" data-background-image="1.png" data-background-opacity="0.1">
+            <div class="slide title-slide">
                 <h1>Tarot AI Agent</h1>
                 <h2>Система оцінки ризиків з використанням штучного інтелекту</h2>
                 <p class="subtitle">Інноваційне поєднання класичної та сучасної магій, традиційної методології Таро з сучасними AI технологіями</p>
@@ -525,10 +914,10 @@
                     <p>Дата: 29.08.2025</p>
                     <p><a href="https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system" target="_blank" style="color: white !important; text-decoration: underline !important;">🔗 GitHub Repository</a></p>
                 </div>
-            </section>
+            </div>
 
             <!-- Огляд проекту -->
-            <section data-background-image="2.png" data-background-opacity="0.1">
+            <div class="slide">
                 <h2>🎯 Огляд проекту</h2>
                 
                 <div class="highlight">
@@ -553,10 +942,10 @@
                         <p>Комплексна безпека та контроль якості відповідей</p>
                     </div>
                 </div>
-            </section>
+            </div>
 
             <!-- Цілі та задачі -->
-            <section data-background-image="3.png" data-background-opacity="0.1">
+            <div class="slide">
                 <h2>🎯 Цілі та задачі</h2>
                 
                 <div class="grid-3">
@@ -583,10 +972,10 @@
                         <li>Система моніторингу та контролю якості відповідей</li>
                     </ul>
                 </div>
-            </section>
+            </div>
 
             <!-- Виклики та рішення -->
-            <section data-background-image="4.png" data-background-opacity="0.1">
+            <div class="slide">
                 <h2>⚡ Виклики та рішення</h2>
                 
                 <div class="challenges-solutions-visual">
@@ -651,40 +1040,33 @@
                         <span class="stat-label">Документів у базі</span>
                     </div>
                 </div>
-            </section>
+            </div>
 
             <!-- Архітектура системи -->
-            <section data-background-image="5.png" data-background-opacity="0.1">
+            <div class="slide">
                 <h2>🏗️ Архітектура системи</h2>
                 
                 <div class="mermaid">
-                    graph TB
-                        UI[Web Interface]
-                        API[REST API]
-                        Flask[Flask App]
-                        Agent[Tarot AI Agent]
-                        LLM[OpenAI GPT-4]
-                        RAG[RAG System]
-                        VectorDB[ChromaDB]
-                        CardData[Card Descriptions]
+                    sequenceDiagram
+                        participant UI as Web Interface
+                        participant API as REST API
+                        participant Flask as Flask App
+                        participant Agent as Tarot AI Agent
+                        participant RAG as RAG System
+                        participant LLM as OpenAI GPT-4
+                        participant VDB as ChromaDB
+                        participant Data as Card Descriptions
                         
-                        UI --> API
-                        API --> Flask
-                        Flask --> Agent
-                        Agent --> RAG
-                        Agent --> VectorDB
-                        RAG --> LLM
-                        CardData --> VectorDB
-                        
-                        classDef frontend fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
-                        classDef backend fill:#f3e8ff,stroke:#8b5cf6,stroke-width:2px
-                        classDef ai fill:#ecfdf5,stroke:#10b981,stroke-width:2px
-                        classDef data fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
-                        
-                        class UI,API frontend
-                        class Flask,Agent backend
-                        class LLM,RAG ai
-                        class VectorDB,CardData data
+                        UI->>API: Request
+                        API->>Flask: Forward
+                        Flask->>Agent: Process
+                        Agent->>RAG: Get Context
+                        Agent->>VDB: Query
+                        RAG->>LLM: Generate
+                        Data->>VDB: Store
+                        VDB-->>Agent: Results
+                        LLM-->>Agent: Response
+                        Agent-->>UI: Final Result
                 </div>
 
                 <div class="warning-box">
@@ -696,10 +1078,10 @@
                         <li>Вбудована система моніторингу та логування</li>
                     </ul>
                 </div>
-            </section>
+            </div>
 
             <!-- Технічний стек -->
-            <section data-background-image="6.png" data-background-opacity="0.1">
+            <div class="slide">
                 <h2>🛠️ Технічний стек</h2>
                 
                 <div class="grid-4">
@@ -744,10 +1126,10 @@
                 <div class="highlight">
                     <strong>Особливості реалізації:</strong> Повністю асинхронна архітектура з підтримкою паралельних запитів, оптимізованим кешуванням та розумним rate limiting для ефективного використання ресурсів.
                 </div>
-            </section>
+            </div>
 
             <!-- RAG система -->
-            <section data-background-image="7.png" data-background-opacity="0.1">
+            <div class="slide">
                 <h2>🔍 RAG System - Ядро системи</h2>
                 
                 <div class="mermaid">
@@ -784,26 +1166,23 @@
                         <p>Система Guardrails для перевірки якості та відповідності згенерованих відповідей</p>
                     </div>
                 </div>
-            </section>
+            </div>
 
             <!-- API функціональність -->
-            <section data-background-image="8.png" data-background-opacity="0.1">
+            <div class="slide">
                 <h2>🔌 API та функціональність</h2>
                 
                 <div class="grid-2">
                     <div class="card">
                         <h4>📍 Основні endpoint'и</h4>
-                        <div class="code-block">
-GET /                    # Веб-інтерфейс
-POST /api/reading       # Таро читання
-GET /api/guardrails/stats # Статистика безпеки
-POST /api/health        # Стан системи
-                        </div>
+                        <pre class="code-block"><code>GET    /                    # Веб-інтерфейс
+POST   /api/reading         # Таро читання
+GET    /api/guardrails/stats # Статистика безпеки
+POST   /api/health          # Стан системи</code></pre>
                     </div>
                     <div class="card">
                         <h4>📊 Формат відповіді</h4>
-                        <div class="code-block">
-{
+                        <pre class="code-block"><code>{
   "cards": [
     {
       "name": "The Magician",
@@ -813,8 +1192,7 @@ POST /api/health        # Стан системи
     }
   ],
   "reading": "**Детальна інтерпретація...**"
-}
-                        </div>
+}</code></pre>
                     </div>
                 </div>
 
@@ -828,38 +1206,36 @@ POST /api/health        # Стан системи
                         <li>Rate limiting та захист від зловживань</li>
                     </ul>
                 </div>
-            </section>
+            </div>
 
             <!-- Система Guardrails -->
-            <section data-background-image="9.png" data-background-opacity="0.1">
+            <div class="slide">
                 <h2>🛡️ Система Guardrails</h2>
                 
                 <div class="mermaid">
-                    graph TD
-                        Input[Вхідний запит] --> InputG[Input Guardrails]
-                        InputG --> ProcessG[Processing Guardrails]
-                        ProcessG --> OutputG[Output Guardrails]
-                        OutputG --> Output[Відповідь користувачу]
+                    sequenceDiagram
+                        participant Input as Вхідний запит
+                        participant InputG as Input Guardrails
+                        participant ProcessG as Processing Guardrails
+                        participant OutputG as Output Guardrails
+                        participant Output as Відповідь користувачу
                         
-                        InputG --> IV[Валідація]
-                        InputG --> IF[Фільтрація]
-                        InputG --> AS[Анти-спам]
+                        Input->>InputG: Запит
+                        InputG->>InputG: Валідація
+                        InputG->>InputG: Фільтрація
+                        InputG->>InputG: Анти-спам
                         
-                        ProcessG --> QC[Контроль якості]
-                        ProcessG --> TM[Моніторинг токенів]
-                        ProcessG --> RL[Rate limiting]
+                        InputG->>ProcessG: Обробка
+                        ProcessG->>ProcessG: Контроль якості
+                        ProcessG->>ProcessG: Моніторинг токенів
+                        ProcessG->>ProcessG: Rate limiting
                         
-                        OutputG --> FF[Перевірка фактів]
-                        OutputG --> HD[Детекція галюцинацій]
-                        OutputG --> CF[Фільтр контенту]
+                        ProcessG->>OutputG: Перевірка
+                        OutputG->>OutputG: Перевірка фактів
+                        OutputG->>OutputG: Детекція галюцинацій
+                        OutputG->>OutputG: Фільтр контенту
                         
-                        classDef input fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
-                        classDef process fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
-                        classDef output fill:#dcfce7,stroke:#10b981,stroke-width:2px
-                        
-                        class Input,InputG,IV,IF,AS input
-                        class ProcessG,QC,TM,RL process
-                        class OutputG,FF,HD,CF,Output output
+                        OutputG->>Output: Результат
                 </div>
 
                 <div class="grid-3">
@@ -876,10 +1252,10 @@ POST /api/health        # Стан системи
                         <p>Блокування медичних, юридичних порад та неетичного контенту</p>
                     </div>
                 </div>
-            </section>
+            </div>
 
             <!-- Тестування -->
-            <section data-background-image="10.png" data-background-opacity="0.1">
+            <div class="slide">
                 <h2>🧪 Тестування та оцінка</h2>
                 
                 <div class="stat-grid">
@@ -925,10 +1301,10 @@ POST /api/health        # Стан системи
                 <div class="warning-box">
                     <strong>Особливість тестування:</strong> Низькі метрики витягування є нормальними для Таро системи через випадковість вибору карт. Основний фокус на якості контенту та релевантності інтерпретацій.
                 </div>
-            </section>
+            </div>
 
             <!-- Моніторинг -->
-            <section data-background-image="11.png" data-background-opacity="0.1">
+            <div class="slide">
                 <h2>📊 Моніторинг та Observability</h2>
                 
                 <div class="grid-3">
@@ -982,10 +1358,10 @@ POST /api/health        # Стан системи
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
 
             <!-- База знань -->
-            <section data-background-image="12.png" data-background-opacity="0.1">
+            <div class="slide">
                 <h2>📚 База знань</h2>
                 
                 <div class="stat-grid">
@@ -1032,10 +1408,10 @@ POST /api/health        # Стан системи
                 <div class="success-box">
                     <strong>Технічна реалізація:</strong> SentenceTransformers all-MiniLM-L6-v2 для створення семантичних ембедінгів, ChromaDB для векторного пошуку, підтримка метаданих для точного фільтрування.
                 </div>
-            </section>
+            </div>
 
             <!-- Результати -->
-            <section data-background-image="13.png" data-background-opacity="0.1">
+            <div class="slide">
                 <h2>📈 Результати та досягнення</h2>
                 
                 <div class="grid-3">
@@ -1079,10 +1455,10 @@ POST /api/health        # Стан системи
                         <li>✅ Масштабована архітектура готова до production</li>
                     </ul>
                 </div>
-            </section>
+            </div>
 
             <!-- Висновки -->
-            <section class="title-slide" data-background-image="14.png" data-background-opacity="0.1">
+            <div class="slide title-slide">
                 <h2>🚀 Висновки та перспективи</h2>
                 
                 <div class="grid-2" style="color: white !important; margin: 2rem 0 !important;">
@@ -1111,68 +1487,185 @@ POST /api/health        # Стан системи
                     <h1 style="color: white !important; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2) !important;">💫 Дякуємо за увагу!</h1>
                     <p class="subtitle" style="font-size: 1.5rem !important; color: rgba(255, 255, 255, 0.9) !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2) !important;">DEMO. Питання та обговорення</p>
                 </div>
-            </section>
+            </div>
 
         </div>
     </div>
 
-    <!-- Reveal.js JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slides = document.querySelectorAll('.slide');
+            const totalSlides = slides.length;
+            let currentSlide = 0;
+            
+            // Функція оновлення лічильника
+            function updateCounter() {
+                document.getElementById('slideCounter').textContent = `${currentSlide + 1} / ${totalSlides}`;
+            }
+            
+            // Функція показу слайду
+            function showSlide(index) {
+                slides.forEach(slide => {
+                    slide.classList.remove('active');
+                });
+                slides[index].classList.add('active');
+                updateCounter();
+            }
+            
+            // Показуємо перший слайд
+            showSlide(0);
+            
+            // Обробники для кнопок
+            document.getElementById('prevSlide').addEventListener('click', () => {
+                currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+                showSlide(currentSlide);
+            });
+            
+            document.getElementById('nextSlide').addEventListener('click', () => {
+                currentSlide = (currentSlide + 1) % totalSlides;
+                showSlide(currentSlide);
+            });
+            
+            // Обробник клавіатури
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'ArrowLeft') {
+                    currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+                    showSlide(currentSlide);
+                } else if (event.key === 'ArrowRight') {
+                    currentSlide = (currentSlide + 1) % totalSlides;
+                    showSlide(currentSlide);
+                }
+            });
+            
+            // Оновлюємо загальну кількість слайдів
+            document.getElementById('slideCounter').textContent = `${currentSlide + 1} / ${totalSlides}`;
+        });
+    </script>
     <script>
         // Ініціалізація Mermaid з правильними налаштуваннями
         mermaid.initialize({
             startOnLoad: true,
-            theme: 'default',
-            themeVariables: {
-                fontSize: '14px',
-                fontFamily: 'Inter, sans-serif'
+            theme: 'base',
+            sequence: {
+                mirrorActors: false,
+                bottomMarginAdj: 30,
+                messageAlign: 'center',
+                boxTextMargin: 15,
+                noteMargin: 30,
+                messageMargin: 60,
+                noteAlign: 'center',
+                actorMargin: 150,
+                width: 250,
+                height: 100,
+                boxMargin: 40
             },
             flowchart: {
-                htmlLabels: false,
-                curve: 'basis'
+                nodeSpacing: 80,
+                rankSpacing: 100,
+                curve: 'basis',
+                useMaxWidth: true,
+                htmlLabels: true,
+                padding: 30
+            },
+            themeVariables: {
+                fontSize: '20px',
+                fontFamily: 'Inter, sans-serif',
+                primaryColor: '#ffffff',
+                primaryTextColor: '#ffffff',
+                primaryBorderColor: 'transparent',
+                lineColor: '#ffffff',
+                secondaryColor: 'transparent',
+                tertiaryColor: 'transparent',
+                background: 'transparent',
+                darkMode: true,
+                nodeBorder: 'transparent',
+                mainBkg: 'transparent',
+                nodeBkg: 'transparent',
+                clusterBkg: 'transparent',
+                edgeLabelBackground: 'transparent',
+                labelTextColor: '#ffffff',
+                labelBackgroundColor: 'transparent',
+                clusterBorder: 'transparent',
+                nodeTextColor: '#ffffff',
+                textColor: '#ffffff',
+                titleColor: '#ffffff',
+                edgeColor: '#ffffff',
+                arrowheadColor: '#ffffff',
+                defaultLinkColor: '#ffffff',
+                nodeBorderWidth: '0px',
+                clusterBorderWidth: '0px',
+                actorBorder: 'transparent',
+                actorBkg: 'transparent',
+                activationBkg: 'transparent',
+                signalColor: '#ffffff',
+                signalTextColor: '#ffffff',
+                labelBoxBkgColor: 'transparent',
+                labelBoxBorderColor: 'transparent',
+                labelTextColor: '#ffffff',
+                loopTextColor: '#ffffff',
+                noteBkgColor: 'transparent',
+                noteBorderColor: 'transparent',
+                noteTextColor: '#ffffff',
+                messageColor: '#ffffff',
+                messageFontWeight: '400',
+                messageTextColor: '#ffffff',
+                sequenceNumberColor: '#ffffff',
+                activeTaskBorderColor: 'transparent',
+                activeTaskBkgColor: 'transparent',
+                gridColor: '#ffffff',
+                doneTaskBorderColor: 'transparent',
+                doneTaskBkgColor: 'transparent',
+                critBorderColor: 'transparent',
+                critBkgColor: 'transparent',
+                taskTextColor: '#ffffff',
+                taskTextOutsideColor: '#ffffff',
+                taskTextLightColor: '#ffffff',
+                sectionBkgColor: 'transparent',
+                altSectionBkgColor: 'transparent',
+                sectionBkgColor2: 'transparent',
+                excludeBkgColor: 'transparent',
+                fillType0: 'transparent',
+                fillType1: 'transparent',
+                fillType2: 'transparent',
+                fillType3: 'transparent',
+                fillType4: 'transparent',
+                fillType5: 'transparent',
+                fillType6: 'transparent',
+                fillType7: 'transparent'
+            },
+            flowchart: {
+                htmlLabels: true,
+                curve: 'basis',
+                nodeSpacing: 80,
+                rankSpacing: 100,
+                padding: 30,
+                useMaxWidth: true,
+                defaultRenderer: 'dagre'
             },
             sequence: {
-                diagramMarginX: 50,
-                diagramMarginY: 10,
-                actorMargin: 50,
-                width: 150,
-                height: 65,
-                boxMargin: 10,
-                boxTextMargin: 5,
-                noteMargin: 10,
-                messageMargin: 35
+                diagramMarginX: 100,
+                diagramMarginY: 50,
+                actorMargin: 150,
+                width: 250,
+                height: 100,
+                boxMargin: 40,
+                boxTextMargin: 20,
+                noteMargin: 40,
+                messageMargin: 80,
+                mirrorActors: false,
+                bottomMarginAdj: 20,
+                useMaxWidth: true,
+                wrap: true
             }
         });
 
-                    // Ініціалізація Reveal.js з покращеними налаштуваннями
-            Reveal.initialize({
-                hash: true,
-                controls: true,
-                progress: true,
-                center: false,
-                transition: 'slide',
-                transitionSpeed: 'default',
-                backgroundTransition: 'fade',
-                // Налаштування фонових зображень
-                parallaxBackgroundImage: '',
-                parallaxBackgroundSize: '',
-                parallaxBackgroundHorizontal: 200,
-                parallaxBackgroundVertical: 50,
-            
-            // Адаптивні налаштування
-            width: '100%',
-            height: '100%',
-            margin: 0.04,
-            minScale: 0.2,
-            maxScale: 2.0,
-            
-            // Покращена навігація
-            keyboard: {
-                32: 'next', // spacebar
-                37: 'prev', // left arrow
-                39: 'next'  // right arrow
-            }
-        });
+            // Очищаємо всі трансформації при завантаженні
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelector('.slides').style.transform = 'none';
+                document.querySelectorAll('.slides section').forEach(function(section) {
+                    section.style.transform = 'none';
+                });
+            });
 
         // Адаптивність для мобільних пристроїв
         function adjustForMobile() {
@@ -1188,11 +1681,6 @@ POST /api/health        # Стан системи
         // Запуск адаптації при завантаженні та зміні розміру
         window.addEventListener('load', adjustForMobile);
         window.addEventListener('resize', adjustForMobile);
-        
-        // Додаткове налаштування після завантаження Reveal.js
-        Reveal.addEventListener('ready', function(event) {
-            adjustForMobile();
-        });
     </script>
 </body>
 </html>
