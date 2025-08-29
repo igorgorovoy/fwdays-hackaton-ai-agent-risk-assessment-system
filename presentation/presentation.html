@@ -427,6 +427,34 @@
             color: var(--text-color);
         }
 
+        /* Стилі для діаграм */
+        .diagram-container {
+            margin: 2rem 0;
+            text-align: center;
+            max-height: 60vh;
+            overflow: hidden;
+        }
+
+        .diagram-image {
+            max-width: 100%;
+            max-height: 60vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .diagram-image:hover {
+            transform: scale(1.02);
+        }
+
+        .diagram-container a {
+            display: inline-block;
+            text-decoration: none;
+        }
+
         @media (max-width: 768px) {
             .slide {
                 padding: 1rem;
@@ -446,6 +474,15 @@
             
             .tech-stack {
                 grid-template-columns: 1fr;
+            }
+
+            .diagram-container {
+                max-height: 50vh;
+                margin: 1rem 0;
+            }
+
+            .diagram-image {
+                max-height: 50vh;
             }
         }
     </style>
@@ -578,88 +615,10 @@
         <div class="slide">
             <div class="content">
                 <h2>🏗️ High Level Design (HLD)</h2>
-                <div class="mermaid">
-                    graph TB
-                        subgraph "Client Tier"
-                            Browser[Web Browser]
-                            Mobile[Mobile Device]
-                        end
-
-                        subgraph "Presentation Tier"
-                            WebServer[Flask Web Server<br/>Port 8080]
-                            StaticAssets[Static Assets<br/>- CSS/JS<br/>- Card Images<br/>- Fonts]
-                            Templates[Jinja2 Templates<br/>index.html]
-                        end
-
-                        subgraph "Business Logic Tier"
-                            subgraph "Core Services"
-                                TarotAgent[Tarot Agent<br/>Main Controller]
-                                DataLoader[Tarot Data Loader<br/>Text Processing]
-                                Observability[Observability Service<br/>Monitoring & Logs]
-                            end
-                            
-                            subgraph "AI Processing Pipeline"
-                                RAGChain[RAG Chain<br/>Document Retrieval]
-                                LLMChain[LLM Chain<br/>Response Generation]
-                                CardSelector[Card Selection Logic<br/>Random Draw Algorithm]
-                            end
-                        end
-
-                        subgraph "AI/ML Services"
-                            subgraph "Language Models"
-                                GPT4[OpenAI GPT-4 Turbo<br/>Temperature: 0.7]
-                                Embeddings[SentenceTransformers<br/>all-MiniLM-L6-v2]
-                            end
-                            
-                            subgraph "Prompt Engineering"
-                                SystemPrompt[System Prompt<br/>Tarot Expert Persona]
-                                ContextTemplate[Context Template<br/>Ukrainian Language]
-                            end
-                        end
-
-                        subgraph "Data Persistence Tier"
-                            subgraph "Vector Database"
-                                ChromaDB[(ChromaDB<br/>Vector Store)]
-                                Metadata[Metadata Store<br/>Card Properties]
-                            end
-                            
-                            subgraph "File System"
-                                CardDescriptions[Card Descriptions<br/>468 .txt files]
-                                CardImages[Card Images<br/>206 .jpg files]
-                                VectorIndex[Vector Index<br/>Persistent Storage]
-                            end
-                        end
-
-                        subgraph "Configuration & Environment"
-                            EnvConfig[Environment Config<br/>.env file]
-                            Requirements[Dependencies<br/>requirements.txt]
-                            VenvPython[Python Virtual Env<br/>Python 3.12]
-                        end
-
-                        Browser --> WebServer
-                        Mobile --> WebServer
-                        WebServer --> Templates
-                        WebServer --> StaticAssets
-                        WebServer --> TarotAgent
-                        TarotAgent --> DataLoader
-                        TarotAgent --> Observability
-                        TarotAgent --> RAGChain
-                        TarotAgent --> CardSelector
-                        RAGChain --> LLMChain
-                        RAGChain --> ChromaDB
-                        LLMChain --> GPT4
-                        LLMChain --> SystemPrompt
-                        GPT4 --> ContextTemplate
-                        DataLoader --> CardDescriptions
-                        DataLoader --> Embeddings
-                        Embeddings --> ChromaDB
-                        ChromaDB --> VectorIndex
-                        ChromaDB --> Metadata
-                        CardSelector --> CardImages
-                        StaticAssets --> CardImages
-                        TarotAgent --> EnvConfig
-                        WebServer --> VenvPython
-                        VenvPython --> Requirements
+                <div class="diagram-container">
+                    <a href="https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system?tab=readme-ov-file#high-level-design-hld" target="_blank">
+                        <img src="hld.png" alt="High Level Design" class="diagram-image">
+                    </a>
                 </div>
             </div>
         </div>
@@ -667,50 +626,11 @@
         <!-- Слайд 6: Діаграма класів -->
         <div class="slide">
             <div class="content">
-                <h2>📋 Діаграма класів</h2>
-                <div class="mermaid">
-                    classDiagram
-                        class FlaskApp {
-                            +routes: Routes
-                            +templates: Templates
-                            +static: Static
-                        }
-                        class TarotAgent {
-                            +cards_path: str
-                            +vector_store_path: str
-                            +llm: ChatOpenAI
-                            +vector_store: TarotVectorStore
-                            +retrieval_chain: Chain
-                            +initialize_vector_store()
-                            +get_reading(question: str)
-                            +get_card_info(card_name: str)
-                            +_draw_cards(num_cards: int)
-                        }
-                        class TarotVectorStore {
-                            +db: Chroma
-                            +embeddings: SentenceTransformers
-                            +create_or_update(documents: List)
-                            +similarity_search(query: str)
-                        }
-                        class TarotDataLoader {
-                            +cards_path: str
-                            +prepare_documents()
-                            +_read_card_files()
-                        }
-                        class ChromaDB {
-                            +collection: Collection
-                            +persist()
-                        }
-                        class OpenAI {
-                            +model: str
-                            +temperature: float
-                        }
-
-                        FlaskApp --> TarotAgent : uses
-                        TarotAgent --> TarotVectorStore : manages
-                        TarotAgent --> OpenAI : uses
-                        TarotVectorStore --> ChromaDB : uses
-                        TarotAgent --> TarotDataLoader : uses
+                <h2>📋 Детальна системна архітектура</h2>
+                <div class="diagram-container">
+                    <a href="https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system?tab=readme-ov-file#%D0%B4%D0%B5%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0-%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%BD%D0%B0-%D0%B0%D1%80%D1%85%D1%96%D1%82%D0%B5%D0%BA%D1%82%D1%83%D1%80%D0%B0" target="_blank">
+                        <img src="./arch.png" alt="Detailed System Architecture" class="diagram-image">
+                    </a>
                 </div>
             </div>
         </div>
@@ -960,35 +880,37 @@ https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system
                         </code>
                     </div>
                 </div>
-
+            </div>
         </div>
 
         <!-- Слайд 13: Висновки -->
         <div class="slide">
             <div class="content">
                 <h2>🎯 Висновки</h2>
-                <div class="card">
-                    <h3>✅ Досягнення</h3>
-                    <ul style="text-align: left; margin-top: 1rem; font-size: 1.2rem;">
-                        <li>Успішна інтеграція AI з традиційною методологією Таро</li>
-                        <li>Висока точність інтерпретацій (>95%)</li>
-                        <li>Швидка обробка запитів (3-7 секунд)</li>
-                        <li>Масштабована архітектура</li>
-                        <li>Комплексна система моніторингу</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <h3>🚀 Перспективи розвитку</h3>
-                    <ul style="text-align: left; margin-top: 1rem; font-size: 1.2rem;">
-                        <li>Розширення бази знань</li>
-                        <li>Покращення алгоритмів вибору карт</li>
-                        <li>Додавання нових мов</li>
-                        <li>Інтеграція з бізнес-системами</li>
-                        <li>Розвиток мобільного додатку</li>
-                    </ul>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>✅ Досягнення</h3>
+                        <ul style="text-align: left; margin-top: 1rem;">
+                            <li>Успішна інтеграція AI з традиційною методологією</li>
+                            <li>Висока точність інтерпретацій (>95%)</li>
+                            <li>Швидка обробка запитів (3-7 секунд)</li>
+                            <li>Масштабована архітектура</li>
+                            <li>Комплексна система моніторингу</li>
+                        </ul>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🚀 Перспективи розвитку</h3>
+                        <ul style="text-align: left; margin-top: 1rem;">
+                            <li>Розширення бази знань</li>
+                            <li>Покращення алгоритмів вибору карт</li>
+                            <li>Додавання нових мов</li>
+                            <li>Інтеграція з бізнес-системами</li>
+                            <li>Розвиток мобільного додатку</li>
+                        </ul>
+                    </div>
                 </div>
                 <div class="highlight">
-                    <p style="font-size: 1.5rem; margin: 0;">Дякуємо за увагу! 🎴</p>
+                    <p style="font-size: 1.5rem; margin: 0;">DEMO</p>
                 </div>
             </div>
         </div>
@@ -1009,7 +931,8 @@ https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system
         // Ініціалізація Mermaid з правильними налаштуваннями
         mermaid.initialize({
             startOnLoad: true,
-            theme: 'base',
+            theme: 'dark',
+            securityLevel: 'loose',
             sequence: {
                 mirrorActors: false,
                 bottomMarginAdj: 30,
@@ -1038,7 +961,7 @@ https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system
                 useMaxWidth: true
             },
             themeVariables: {
-                fontSize: '20px',
+                fontSize: '16px',
                 fontFamily: 'Inter, sans-serif',
                 primaryColor: '#ffffff',
                 primaryTextColor: '#ffffff',
@@ -1048,12 +971,12 @@ https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system
                 tertiaryColor: '#ffffff',
                 background: 'transparent',
                 nodeBorder: '#ffffff',
-                mainBkg: 'rgba(15, 23, 42, 0.6)',
-                nodeBkg: 'rgba(15, 23, 42, 0.6)',
+                mainBkg: 'rgba(15, 23, 42, 0.8)',
+                nodeBkg: 'rgba(15, 23, 42, 0.8)',
                 clusterBkg: 'rgba(15, 23, 42, 0.6)',
-                edgeLabelBackground: 'rgba(15, 23, 42, 0.6)',
+                edgeLabelBackground: 'rgba(15, 23, 42, 0.8)',
                 labelTextColor: '#ffffff',
-                labelBackgroundColor: 'rgba(15, 23, 42, 0.6)',
+                labelBackgroundColor: 'rgba(15, 23, 42, 0.8)',
                 clusterBorder: '#ffffff',
                 nodeTextColor: '#ffffff',
                 textColor: '#ffffff',
@@ -1067,7 +990,7 @@ https://github.com/igorgorovoy/fwdays-hackaton-ai-agent-risk-assessment-system
                 classText: '#ffffff',
                 classTitle: '#ffffff',
                 classLabel: '#ffffff',
-                classBox: 'rgba(15, 23, 42, 0.6)',
+                classBox: 'rgba(15, 23, 42, 0.8)',
                 classBoxBorder: '#ffffff'
             }
         });
